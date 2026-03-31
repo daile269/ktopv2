@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/ktop3";
+  process.env.MONGODB_URI || "mongodb://localhost:27017/ktop-new";
 
 // Middleware
 app.use(cors());
@@ -62,28 +62,32 @@ app.get("/api/pages/:pageId", async (req, res) => {
       });
     }
 
-    // Pad arrays to 366 rows
-    const ROWS = 366;
-    const t1Values = [...page.t1Values];
-    const t2Values = [...page.t2Values];
+    // Pad arrays to 125 rows
+    const ROWS = 125;
+    const aValues = [...page.aValues];
+    const bValues = [...page.bValues];
+    const zValues = page.zValues ? [...page.zValues] : [];
     const dateValues = [...page.dateValues];
     const deletedRows = [...page.deletedRows];
 
-    while (t1Values.length < ROWS) t1Values.push("");
-    while (t2Values.length < ROWS) t2Values.push("");
+    while (aValues.length < ROWS) aValues.push("");
+    while (bValues.length < ROWS) bValues.push("");
+    while (zValues.length < ROWS) zValues.push("");
     while (dateValues.length < ROWS) dateValues.push("");
     while (deletedRows.length < ROWS) deletedRows.push(false);
 
     res.json({
       success: true,
       data: {
-        t1Values,
-        t2Values,
+        aValues,
+        bValues,
+        zValues,
         dateValues,
         deletedRows,
         purpleRangeFrom: page.purpleRangeFrom || 0,
         purpleRangeTo: page.purpleRangeTo || 0,
-        keepLastNRows: page.keepLastNRows || 366,
+        keepLastNRows: page.keepLastNRows || 125,
+        allQData: page.allQData,
       },
     });
 
@@ -105,46 +109,60 @@ app.post("/api/pages/:pageId", async (req, res) => {
   try {
     const { pageId } = req.params;
     const {
-      t1Values,
-      t2Values,
+      aValues,
+      bValues,
+      zValues,
       dateValues,
       deletedRows,
       purpleRangeFrom,
       purpleRangeTo,
       keepLastNRows,
+      allQData,
     } = req.body;
 
     console.log(`💾 Saving data for page: ${pageId}`);
 
     // Find last index with data
     let lastIndex = -1;
-    for (let i = t1Values.length - 1; i >= 0; i--) {
-      if (t1Values[i] || t2Values[i] || dateValues[i]) {
+    const aLen = aValues ? aValues.length : 0;
+    const bLen = bValues ? bValues.length : 0;
+    const zLen = zValues ? zValues.length : 0;
+    const dLen = dateValues ? dateValues.length : 0;
+    const maxLen = Math.max(aLen, bLen, zLen, dLen);
+
+    for (let i = maxLen - 1; i >= 0; i--) {
+      if (
+        (aValues && aValues[i]) ||
+        (bValues && bValues[i]) ||
+        (zValues && zValues[i]) ||
+        (dateValues && dateValues[i])
+      ) {
         lastIndex = i;
         break;
       }
     }
 
     // Trim empty values at the end
-    const trimmedT1 = lastIndex >= 0 ? t1Values.slice(0, lastIndex + 1) : [];
-    const trimmedT2 = lastIndex >= 0 ? t2Values.slice(0, lastIndex + 1) : [];
-    const trimmedDates =
-      lastIndex >= 0 ? dateValues.slice(0, lastIndex + 1) : [];
-    const trimmedDeleted =
-      lastIndex >= 0 ? deletedRows.slice(0, lastIndex + 1) : [];
+    const trimmedA = (lastIndex >= 0 && aValues) ? aValues.slice(0, lastIndex + 1) : [];
+    const trimmedB = (lastIndex >= 0 && bValues) ? bValues.slice(0, lastIndex + 1) : [];
+    const trimmedZ = (lastIndex >= 0 && zValues) ? zValues.slice(0, lastIndex + 1) : [];
+    const trimmedDates = (lastIndex >= 0 && dateValues) ? dateValues.slice(0, lastIndex + 1) : [];
+    const trimmedDeleted = (lastIndex >= 0 && deletedRows) ? deletedRows.slice(0, lastIndex + 1) : [];
 
     // Update or create page
     const page = await Page.findOneAndUpdate(
       { pageId },
       {
         pageId,
-        t1Values: trimmedT1,
-        t2Values: trimmedT2,
+        aValues: trimmedA,
+        bValues: trimmedB,
+        zValues: trimmedZ,
         dateValues: trimmedDates,
         deletedRows: trimmedDeleted,
         purpleRangeFrom: purpleRangeFrom || 0,
         purpleRangeTo: purpleRangeTo || 0,
-        keepLastNRows: keepLastNRows || 366,
+        keepLastNRows: keepLastNRows || 125,
+        allQData,
         updatedAt: new Date(),
       },
       {

@@ -1,89 +1,181 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, memo, useCallback } from "react";
 import "./App.css";
 import "./InputPage.css";
 import { savePageData, loadPageData } from "./dataService";
 
-function InputPage() {
-  const MIN_ROWS = 366; // Minimum rows
-  const [keepLastNRows, setKeepLastNRows] = useState(366);
-  const ROWS = Math.max(MIN_ROWS, keepLastNRows); // Dynamic: min 366, or larger from DB
+const TaskRow = memo(
+  ({
+    rowIndex,
+    displayRowNumber,
+    isDeleted,
+    isSelected,
+    zValue,
+    dateValue,
+    allQData,
+    onToggleSelect,
+    onZChange,
+    onDateChange,
+    onAChange,
+    onBChange,
+  }) => {
+    return (
+      <tr className={isSelected ? "selected-draft-row" : ""}>
+        <td
+          style={{
+            textAlign: "center",
+            width: "80px !important",
+            minWidth: "80px !important",
+            padding: 0,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => onToggleSelect(rowIndex)}
+            disabled={isDeleted}
+            style={{
+              transform: "scale(2.2)",
+              cursor: "pointer",
+            }}
+          />
+        </td>
+        <td style={{ textAlign: "center", fontSize: "20px" }}>
+          {String(displayRowNumber).padStart(3, "0")}
+        </td>
+        <td>
+          <input
+            type="text"
+            className="cell-input"
+            maxLength={6}
+            value={isDeleted ? "" : zValue || ""}
+            onChange={(e) => onZChange(rowIndex, e.target.value)}
+            disabled={isDeleted}
+            style={{
+              textAlign: "center",
+              width: "100%",
+              padding: "8px",
+              fontSize: "20px",
+              fontWeight: "bold",
+            }}
+          />
+        </td>
+        <td>
+          <input
+            type="date"
+            className="cell-input"
+            value={isDeleted ? "" : dateValue || ""}
+            onChange={(e) => onDateChange(rowIndex, e.target.value)}
+            disabled={isDeleted}
+          />
+        </td>
+        {Array.from({ length: 10 }).map((_, qIndex) => {
+          const qData = allQData[qIndex];
+          const aV = isDeleted ? "" : qData?.aValues[rowIndex] || "";
+          const bV = isDeleted ? "" : qData?.bValues[rowIndex] || "";
+          const color = qIndex % 2 === 0 ? "#fff" : "#f1f1f1";
 
-  // State cho T1, T2 của 10Q
+          return (
+            <span key={qIndex} style={{ display: "contents" }}>
+              <td
+                style={{
+                  backgroundColor: color,
+                  borderRight: "2px solid #999",
+                }}
+              >
+                <input
+                  type="text"
+                  className="cell-input small"
+                  value={aV}
+                  onChange={(e) => onAChange(qIndex, rowIndex, e.target.value)}
+                  disabled={isDeleted}
+                />
+              </td>
+              <td
+                style={{
+                  backgroundColor: color,
+                  borderRight: "2px solid red",
+                }}
+              >
+                <input
+                  type="text"
+                  className="cell-input small"
+                  value={bV}
+                  onChange={(e) => onBChange(qIndex, rowIndex, e.target.value)}
+                  disabled={isDeleted}
+                />
+              </td>
+            </span>
+          );
+        })}
+      </tr>
+    );
+  },
+);
+
+function InputPage() {
+  const MIN_ROWS = 125; // Minimum rows
+  const [keepLastNRows, setKeepLastNRows] = useState(125);
+  const ROWS = Math.max(MIN_ROWS, keepLastNRows); // Dynamic: min 125, or larger from DB
+
+  // State cho A, B của 10Q
   const [allQData, setAllQData] = useState(
     Array(10)
       .fill(null)
       .map(() => ({
-        t1Values: Array(ROWS).fill(""),
-        t2Values: Array(ROWS).fill(""),
+        aValues: Array(ROWS).fill(""),
+        bValues: Array(ROWS).fill(""),
       })),
   );
 
   const [dateValues, setDateValues] = useState(Array(ROWS).fill(""));
+  const [zValues, setZValues] = useState(Array(ROWS).fill(""));
   const [deletedRows, setDeletedRows] = useState(Array(ROWS).fill(false));
   const [purpleRangeFrom, setPurpleRangeFrom] = useState(0);
   const [purpleRangeTo, setPurpleRangeTo] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState("");
+  const [selectedRows, setSelectedRows] = useState({}); // { rowIndex: true }
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [isAddingToCalc, setIsAddingToCalc] = useState(false);
 
-  // Load data từ 10Q
+  // Load data từ master_draft
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
 
-      const loadPromises = [];
-      for (let i = 1; i <= 10; i++) {
-        loadPromises.push(loadPageData(`q${i}`));
+      const result = await loadPageData("master_draft");
+
+      if (result.success && result.data) {
+        const d = result.data;
+        setAllQData(
+          d.allQData ||
+            Array(10)
+              .fill(null)
+              .map(() => ({
+                aValues: Array(ROWS).fill(""),
+                bValues: Array(ROWS).fill(""),
+              })),
+        );
+        setDateValues(d.dateValues || Array(ROWS).fill(""));
+        setZValues(d.zValues || Array(ROWS).fill(""));
+        setDeletedRows(d.deletedRows || Array(ROWS).fill(false));
+        setKeepLastNRows(d.keepLastNRows || 125);
+        setPurpleRangeFrom(d.purpleRangeFrom || 0);
+        setPurpleRangeTo(d.purpleRangeTo || 0);
+      } else {
+        // Khởi tạo bảng trống nếu chưa có master_draft
+        setAllQData(
+          Array(10)
+            .fill(null)
+            .map(() => ({
+              aValues: Array(ROWS).fill(""),
+              bValues: Array(ROWS).fill(""),
+            })),
+        );
+        setDateValues(Array(ROWS).fill(""));
+        setZValues(Array(ROWS).fill(""));
+        setDeletedRows(Array(ROWS).fill(false));
       }
-
-      const results = await Promise.all(loadPromises);
-
-      const newAllQData = [];
-      let sharedDateValues = [];
-      let sharedDeletedRows = [];
-      let sharedPurpleFrom = 0;
-      let sharedPurpleTo = 0;
-
-      results.forEach((result, index) => {
-        if (result.success && result.data) {
-          newAllQData.push({
-            t1Values: result.data.t1Values,
-            t2Values: result.data.t2Values,
-          });
-
-          // Lấy shared data từ Q1
-          if (index === 0) {
-            sharedDateValues = result.data.dateValues || [];
-            sharedDeletedRows = result.data.deletedRows || [];
-            sharedPurpleFrom = result.data.purpleRangeFrom || 0;
-            sharedPurpleTo = result.data.purpleRangeTo || 0;
-
-            // Load keepLastNRows từ Q1 DB
-            const loadedKeepLastNRows = result.data.keepLastNRows || 366;
-            setKeepLastNRows(loadedKeepLastNRows);
-
-            // Tính ROWS động
-            const dynamicRows = Math.max(MIN_ROWS, loadedKeepLastNRows);
-
-            // Pad hoặc trim arrays để match dynamicRows
-            while (sharedDateValues.length < dynamicRows)
-              sharedDateValues.push("");
-            while (sharedDeletedRows.length < dynamicRows)
-              sharedDeletedRows.push(false);
-          }
-        } else {
-          const dynamicRows = Math.max(MIN_ROWS, keepLastNRows);
-          newAllQData.push({
-            t1Values: Array(dynamicRows).fill(""),
-            t2Values: Array(dynamicRows).fill(""),
-          });
-        }
-      });
-
-      setAllQData(newAllQData);
-      setDateValues(sharedDateValues);
-      setDeletedRows(sharedDeletedRows);
-      setPurpleRangeFrom(sharedPurpleFrom);
-      setPurpleRangeTo(sharedPurpleTo);
       setIsLoading(false);
     };
 
@@ -105,12 +197,13 @@ function InputPage() {
           dateValues[i] !== null &&
           dateValues[i] !== undefined;
 
-        // Nếu chưa có ngày, kiểm tra T1/T2 của tất cả Q
+        // Nếu chưa có ngày, kiểm tra A/B của tất cả Q
         if (!hasData) {
           for (let qIndex = 0; qIndex < 10; qIndex++) {
-            const t1 = allQData[qIndex]?.t1Values[i];
-            const t2 = allQData[qIndex]?.t2Values[i];
-            if ((t1 && t1 !== "") || (t2 && t2 !== "")) {
+            const a = allQData[qIndex]?.aValues[i];
+            const b = allQData[qIndex]?.bValues[i];
+            const z = zValues[i];
+            if ((a && a !== "") || (b && b !== "") || (z && z !== "")) {
               hasData = true;
               break;
             }
@@ -180,9 +273,10 @@ function InputPage() {
 
         if (!hasData) {
           for (let qIndex = 0; qIndex < 10; qIndex++) {
-            const t1 = allQData[qIndex]?.t1Values[i];
-            const t2 = allQData[qIndex]?.t2Values[i];
-            if ((t1 && t1 !== "") || (t2 && t2 !== "")) {
+            const a = allQData[qIndex]?.aValues[i];
+            const b = allQData[qIndex]?.bValues[i];
+            const z = zValues[i];
+            if ((a && a !== "") || (b && b !== "") || (z && z !== "")) {
               hasData = true;
               break;
             }
@@ -225,57 +319,270 @@ function InputPage() {
 
     // Save automatically
     setSaveStatus("💾 Đang lưu...");
-    const savePromises = [];
-    for (let qIndex = 0; qIndex < 10; qIndex++) {
-      const qId = `q${qIndex + 1}`;
-      savePromises.push(
-        savePageData(
-          qId,
-          allQData[qIndex].t1Values,
-          allQData[qIndex].t2Values,
-          dateValues,
-          newDeletedRows,
-          purpleRangeFrom,
-          purpleRangeTo,
-          n,
-        ),
-      );
-    }
-    await Promise.all(savePromises);
+    await savePageData(
+      "master_draft",
+      null,
+      null,
+      zValues,
+      dateValues,
+      newDeletedRows,
+      purpleRangeFrom,
+      purpleRangeTo,
+      n,
+      allQData,
+    );
     setSaveStatus("✅ Đã giữ " + n + " dòng cuối!");
     alert(`✅ Đã thực hiện giữ lại ${n} dòng cuối cùng!`);
     setTimeout(() => setSaveStatus(""), 2000);
   };
 
-  // Save data vào 10Q
-  const handleSave = async () => {
-    setSaveStatus("💾 Đang lưu...");
-
-    const savePromises = [];
-
-    for (let qIndex = 0; qIndex < 10; qIndex++) {
-      const qId = `q${qIndex + 1}`;
-
-      savePromises.push(
-        savePageData(
-          qId,
-          allQData[qIndex].t1Values,
-          allQData[qIndex].t2Values,
-          dateValues,
-          deletedRows,
-          purpleRangeFrom,
-          purpleRangeTo,
-          keepLastNRows,
-        ),
-      );
+  // Save data vào master_draft
+  const handleClearDraft = async () => {
+    if (
+      !window.confirm(
+        "⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa TOÀN BỘ dữ liệu nháp này không?\n\nHành động này không thể hoàn tác!",
+      )
+    ) {
+      return;
     }
 
-    await Promise.all(savePromises);
+    try {
+      const emptyArray = Array(MIN_ROWS).fill("");
+      const emptyDeleted = Array(MIN_ROWS).fill(false);
 
-    setSaveStatus("✅ Đã lưu tất cả Q1-Q10!");
-    alert("✅ Đã lưu thành công!");
+      setDateValues(emptyArray);
+      setZValues(emptyArray);
+      setDeletedRows(emptyDeleted);
+      setAllQData(
+        Array(10)
+          .fill(null)
+          .map(() => ({ aValues: [...emptyArray], bValues: [...emptyArray] })),
+      );
+      setSelectedRows({});
+
+      setSaveStatus("🗑️ Đang xóa...");
+      const result = await savePageData(
+        "master_draft",
+        null,
+        null,
+        emptyArray, // zValues
+        emptyArray, // dateValues
+        emptyDeleted,
+        purpleRangeFrom,
+        purpleRangeTo,
+        keepLastNRows,
+        Array(10)
+          .fill(null)
+          .map(() => ({
+            aValues: Array(MIN_ROWS).fill(""),
+            bValues: Array(MIN_ROWS).fill(""),
+          })),
+      );
+
+      if (result.success) {
+        setSaveStatus("✅ Đã xóa sạch dữ liệu nháp");
+      } else {
+        setSaveStatus("⚠️ Lỗi khi xóa: " + result.error);
+      }
+    } catch (e) {
+      setSaveStatus("⚠️ Lỗi khi xóa");
+    }
     setTimeout(() => setSaveStatus(""), 2000);
   };
+
+  const handleSave = async () => {
+    setSaveStatus("💾 Đang lưu...");
+    const result = await savePageData(
+      "master_draft",
+      null, // Not used directly in draft
+      null,
+      zValues,
+      dateValues,
+      deletedRows,
+      purpleRangeFrom,
+      purpleRangeTo,
+      keepLastNRows,
+      allQData, // Truyền allQData
+    );
+
+    if (result.success) {
+      setSaveStatus("✅ Đã lưu Master!");
+      alert("✅ Đã lưu Master thành công!");
+    } else {
+      setSaveStatus("⚠️ Lỗi!");
+      alert("⚠️ Lỗi khi lưu vào Master: " + (result.error || "Không xác định"));
+    }
+    setTimeout(() => setSaveStatus(""), 2000);
+  };
+
+  // Helper function to format date to DD/MM/YYYY
+  const formatDateSimple = (dateString) => {
+    if (!dateString) return "N/A";
+    const parts = dateString.split("-");
+    if (parts.length === 3) {
+      const year = parts[0];
+      const month = parts[1];
+      const day = parts[2];
+      return `${day}/${month}/${year}`;
+    }
+    return dateString;
+  };
+
+  const handleToggleSelect = useCallback((rowIndex) => {
+    setSelectedRows((prev) => {
+      const next = { ...prev };
+      if (next[rowIndex]) delete next[rowIndex];
+      else next[rowIndex] = true;
+      return next;
+    });
+  }, []);
+
+  const handleZChange = useCallback((rIdx, val) => {
+    const v = val.replace(/[^0-9]/g, "");
+    if (v.length <= 6) {
+      setZValues((prev) => {
+        const next = [...prev];
+        next[rIdx] = v;
+        return next;
+      });
+    }
+  }, []);
+
+  const handleDateChange = useCallback((rIdx, val) => {
+    setDateValues((prev) => {
+      const next = [...prev];
+      next[rIdx] = val;
+      return next;
+    });
+  }, []);
+
+  const handleAChange = useCallback((qIdx, rIdx, val) => {
+    setAllQData((prev) => {
+      const next = [...prev];
+      // Deep clone only the affected Q
+      const updatedQ = {
+        ...next[qIdx],
+        aValues: [...next[qIdx].aValues],
+      };
+      updatedQ.aValues[rIdx] = val;
+      next[qIdx] = updatedQ;
+      return next;
+    });
+  }, []);
+
+  const handleBChange = useCallback((qIdx, rIdx, val) => {
+    setAllQData((prev) => {
+      const next = [...prev];
+      // Deep clone only the affected Q
+      const updatedQ = {
+        ...next[qIdx],
+        bValues: [...next[qIdx].bValues],
+      };
+      updatedQ.bValues[rIdx] = val;
+      next[qIdx] = updatedQ;
+      return next;
+    });
+  }, []);
+
+  const handleConfirmAddToApp = async () => {
+    const selectedIndices = Object.keys(selectedRows)
+      .map(Number)
+      .sort((a, b) => a - b);
+    if (selectedIndices.length === 0) {
+      alert("⚠️ Vui lòng chọn ít nhất một dòng!");
+      return;
+    }
+
+    setIsAddingToCalc(true);
+    setSaveStatus("🚀 Đang thêm vào bảng tính...");
+
+    try {
+      for (let i = 1; i <= 10; i++) {
+        const qId = `q${i}`;
+        const currentData = await loadPageData(qId);
+        let activeA = [],
+          activeB = [],
+          activeZ = [],
+          activeD = [],
+          activeDel = [];
+
+        if (currentData.success && currentData.data) {
+          activeA = currentData.data.aValues || [];
+          activeB = currentData.data.bValues || [];
+          activeZ = currentData.data.zValues || [];
+          activeD = currentData.data.dateValues || [];
+          activeDel = currentData.data.deletedRows || [];
+        } else {
+          activeA = Array(125).fill("");
+          activeB = Array(125).fill("");
+          activeZ = Array(125).fill("");
+          activeD = Array(125).fill("");
+          activeDel = Array(125).fill(true);
+        }
+
+        // Append selected rows
+        selectedIndices.forEach((idx) => {
+          activeA.push(allQData[i - 1].aValues[idx]);
+          activeB.push(allQData[i - 1].bValues[idx]);
+          activeZ.push(zValues[idx]);
+          activeD.push(dateValues[idx]);
+          activeDel.push(false);
+        });
+
+        // Keep last 125
+        if (activeA.length > 125) {
+          activeA = activeA.slice(-125);
+          activeB = activeB.slice(-125);
+          activeZ = activeZ.slice(-125);
+          activeD = activeD.slice(-125);
+          activeDel = activeDel.slice(-125);
+        } else {
+          // Pad back to 125 if needed
+          while (activeA.length < 125) {
+            activeA.unshift("");
+            activeB.unshift("");
+            activeZ.unshift("");
+            activeD.unshift("");
+            activeDel.unshift(true);
+          }
+        }
+
+        await savePageData(
+          qId,
+          activeA,
+          activeB,
+          activeZ,
+          activeD,
+          activeDel,
+          purpleRangeFrom,
+          purpleRangeTo,
+          125,
+        );
+      }
+
+      setSaveStatus("✅ Đã thêm mới vào bảng tính!");
+      alert(`✅ Đã thêm ${selectedIndices.length} dòng thành công!`);
+      setSelectedRows({});
+      setShowAddModal(false);
+    } catch (e) {
+      alert("⚠️ Lỗi trong quá trình thêm!");
+    } finally {
+      setIsAddingToCalc(false);
+      setTimeout(() => setSaveStatus(""), 2000);
+    }
+  };
+
+  const sortedIndices = useMemo(() => {
+    return Array.from(
+      { length: dateValues.length || MIN_ROWS },
+      (_, i) => i,
+    ).sort((a, b) => {
+      const aDeleted = deletedRows[a] || false;
+      const bDeleted = deletedRows[b] || false;
+      if (aDeleted === bDeleted) return a - b;
+      return aDeleted ? 1 : -1;
+    });
+  }, [dateValues.length, deletedRows]);
 
   if (isLoading) {
     return (
@@ -386,7 +693,18 @@ function InputPage() {
                 }}
               />
             </div> */}
-            {/* <h2 style={{ fontSize: "30px" }}>Nhập T1, T2 cho Q1-Q10</h2> */}
+            {/* <h2 style={{ fontSize: "30px" }}>Nhập A, B cho Q1-Q10</h2> */}
+            {/* <h2
+              style={{
+                fontSize: "30px",
+                fontWeight: "bold",
+                color: "#007bff",
+                textDecoration: "underline",
+                marginRight: "30px",
+              }}
+            >
+              BẢNG THÔNG
+            </h2> */}
             <div
               style={{
                 display: "flex",
@@ -444,9 +762,38 @@ function InputPage() {
               <button
                 className="toolbar-btn"
                 onClick={handleSave}
-                style={{ fontSize: "20px" }}
+                style={{
+                  fontSize: "20px",
+                  background: "#28a745",
+                  color: "white",
+                  border: "none",
+                }}
               >
-                💾Lưu dữ liệu
+                💾 Lưu dữ liệu Bảng thông
+              </button>
+              <button
+                className="toolbar-btn"
+                onClick={() => setShowAddModal(true)}
+                style={{
+                  fontSize: "20px",
+                  background: "#6f42c1",
+                  color: "white",
+                  border: "none",
+                }}
+              >
+                ➕ Thêm vào bảng tính
+              </button>
+              <button
+                className="toolbar-btn delete-btn"
+                onClick={handleClearDraft}
+                style={{
+                  fontSize: "20px",
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                  border: "none",
+                }}
+              >
+                🗑️ Xóa dữ liệu Bảng thông
               </button>
               {saveStatus && (
                 <span style={{ color: "#28a745" }}>{saveStatus}</span>
@@ -478,8 +825,26 @@ function InputPage() {
             <table className="schedule-table">
               <thead>
                 <tr>
-                  <th rowSpan="2">STT</th>
-                  <th rowSpan="2">Ngày</th>
+                  <th
+                    rowSpan="2"
+                    style={{
+                      padding: 0,
+                      width: "80px !important",
+                      minWidth: "80px !important",
+                      fontSize: "22px",
+                    }}
+                  >
+                    Chọn
+                  </th>
+                  <th rowSpan="2" style={{ padding: "8px 4px" }}>
+                    STT
+                  </th>
+                  <th rowSpan="2" style={{ minWidth: "140px", width: "140px" }}>
+                    Z
+                  </th>
+                  <th rowSpan="2" style={{ width: "200px" }}>
+                    Ngày
+                  </th>
                   {Array.from({ length: 10 }, (_, qIndex) => {
                     // Màu background: Q lẻ màu ghi nhạt, Q chẵn màu xanh nhạt
                     const color = qIndex % 2 === 0 ? "#e0e0e0" : "#e3f2fd"; // Q lẻ (index 0,2,4,6,8) = ghi, Q chẵn (index 1,3,5,7,9) = xanh
@@ -492,6 +857,7 @@ function InputPage() {
                           backgroundColor: color,
                           borderLeft: "2px solid red",
                           borderRight: "2px solid red",
+                          borderBottom: "2px solid black",
                         }}
                       >
                         Q{qIndex + 1}
@@ -506,22 +872,25 @@ function InputPage() {
                     return (
                       <>
                         <th
-                          key={`t1-${qIndex}`}
+                          key={`a-${qIndex}`}
                           style={{
                             backgroundColor: color,
                             borderLeft: "2px solid red",
+                            borderRight: "2px solid #999",
+                            minWidth: "60px",
                           }}
                         >
-                          T1
+                          A
                         </th>
                         <th
-                          key={`t2-${qIndex}`}
+                          key={`b-${qIndex}`}
                           style={{
                             backgroundColor: color,
                             borderRight: "2px solid red",
+                            minWidth: "60px",
                           }}
                         >
-                          T2
+                          B
                         </th>
                       </>
                     );
@@ -529,103 +898,133 @@ function InputPage() {
                 </tr>
               </thead>
               <tbody>
-                {(() => {
-                  const sortedIndices = Array.from(
-                    { length: ROWS },
-                    (_, i) => i,
-                  ).sort((a, b) => {
-                    const aDeleted = deletedRows[a] || false;
-                    const bDeleted = deletedRows[b] || false;
-                    if (aDeleted === bDeleted) return a - b;
-                    return aDeleted ? 1 : -1;
-                  });
-                  let displayRowNumber = 0;
-                  return sortedIndices.map((rowIndex) => {
-                    const isDeleted = deletedRows[rowIndex] || false;
-                    displayRowNumber++; // Đếm tất cả các dòng
-                    return (
-                      <tr key={rowIndex}>
-                        <td>{String(displayRowNumber).padStart(3, "0")}</td>
-                        <td>
-                          <input
-                            type="date"
-                            className="cell-input"
-                            value={isDeleted ? "" : dateValues[rowIndex] || ""}
-                            onChange={(e) => {
-                              const newDateValues = [...dateValues];
-                              newDateValues[rowIndex] = e.target.value;
-                              setDateValues(newDateValues);
-                            }}
-                            disabled={isDeleted}
-                          />
-                        </td>
-
-                        {Array.from({ length: 10 }, (_, qIndex) => {
-                          const color =
-                            qIndex % 2 === 0 ? "#e0e0e0" : "#e3f2fd"; // Q lẻ = ghi, Q chẵn = xanh
-
-                          return (
-                            <>
-                              <td
-                                key={`t1-${qIndex}`}
-                                style={{
-                                  backgroundColor: color,
-                                }}
-                              >
-                                <input
-                                  type="text"
-                                  className="cell-input small"
-                                  value={
-                                    isDeleted
-                                      ? ""
-                                      : allQData[qIndex].t1Values[rowIndex] ||
-                                        ""
-                                  }
-                                  onChange={(e) => {
-                                    const newAllQData = [...allQData];
-                                    newAllQData[qIndex].t1Values[rowIndex] =
-                                      e.target.value;
-                                    setAllQData(newAllQData);
-                                  }}
-                                  disabled={isDeleted}
-                                />
-                              </td>
-                              <td
-                                key={`t2-${qIndex}`}
-                                style={{
-                                  backgroundColor: color,
-                                }}
-                              >
-                                <input
-                                  type="text"
-                                  className="cell-input small"
-                                  value={
-                                    isDeleted
-                                      ? ""
-                                      : allQData[qIndex].t2Values[rowIndex] ||
-                                        ""
-                                  }
-                                  onChange={(e) => {
-                                    const newAllQData = [...allQData];
-                                    newAllQData[qIndex].t2Values[rowIndex] =
-                                      e.target.value;
-                                    setAllQData(newAllQData);
-                                  }}
-                                  disabled={isDeleted}
-                                />
-                              </td>
-                            </>
-                          );
-                        })}
-                      </tr>
-                    );
-                  });
-                })()}
+                {sortedIndices.map((rowIndex, idx) => (
+                  <TaskRow
+                    key={rowIndex}
+                    rowIndex={rowIndex}
+                    displayRowNumber={idx + 1}
+                    isDeleted={deletedRows[rowIndex]}
+                    isSelected={!!selectedRows[rowIndex]}
+                    zValue={zValues[rowIndex]}
+                    dateValue={dateValues[rowIndex]}
+                    allQData={allQData}
+                    onToggleSelect={handleToggleSelect}
+                    onZChange={handleZChange}
+                    onDateChange={handleDateChange}
+                    onAChange={handleAChange}
+                    onBChange={handleBChange}
+                  />
+                ))}
               </tbody>
             </table>
           </div>
         </div>
       </div>
+      {/* Modal xác nhận thêm vào bảng tính */}
+      {showAddModal && (
+        <div className="modal-overlay">
+          <div
+            className="modal-content"
+            style={{ maxWidth: "800px", width: "95%" }}
+          >
+            <h2 style={{ fontSize: "24px", marginBottom: "20px" }}>
+              🚀 Xác nhận thêm vào bảng tính
+            </h2>
+
+            <div
+              style={{
+                maxHeight: "300px",
+                overflowY: "auto",
+                border: "1px solid #ddd",
+                padding: "10px",
+                marginBottom: "20px",
+                fontSize: "20px",
+              }}
+            >
+              <p>Danh sách các dòng đã chọn:</p>
+              <ul style={{ listStyle: "none", padding: 0 }}>
+                {Object.keys(selectedRows).map((idx) => (
+                  <li
+                    key={idx}
+                    style={{ padding: "5px", borderBottom: "1px solid #eee" }}
+                  >
+                    Dòng {parseInt(idx) + 1} - Ngày:{" "}
+                    <strong>{formatDateSimple(dateValues[idx])}</strong> - Thông
+                    số Z: <strong>{zValues[idx] || "N/A"}</strong>
+                  </li>
+                ))}
+                {Object.keys(selectedRows).length === 0 && (
+                  <li style={{ color: "red" }}>Chưa chọn dòng nào!</li>
+                )}
+              </ul>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={() => setShowAddModal(false)}
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  background: "white",
+                  fontSize: "20px",
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleConfirmAddToApp}
+                disabled={
+                  isAddingToCalc || Object.keys(selectedRows).length === 0
+                }
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: "8px",
+                  background: "#6f42c1",
+                  color: "white",
+                  border: "none",
+                  fontSize: "20px",
+                  cursor: isAddingToCalc ? "not-allowed" : "pointer",
+                  opacity: isAddingToCalc ? 0.7 : 1,
+                }}
+              >
+                {isAddingToCalc ? "⌛ Đang xử lý..." : "✅ Xác nhận thêm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        .modal-overlay {
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: rgba(0,0,0,0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+        .modal-content {
+          background: white;
+          padding: 20px;
+          border-radius: 12px;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .selected-draft-row {
+          background-color: #f3e8ff !important;
+        }
+        .selected-draft-row td {
+          border-top: 1px solid #6f42c1;
+          border-bottom: 1px solid #6f42c1;
+        }
+      `}</style>
     </>
   );
 }

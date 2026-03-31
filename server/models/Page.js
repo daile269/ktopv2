@@ -7,11 +7,15 @@ const pageSchema = new mongoose.Schema({
     unique: true,
     index: true
   },
-  t1Values: {
+  aValues: {
     type: [String],
     default: []
   },
-  t2Values: {
+  bValues: {
+    type: [String],
+    default: []
+  },
+  zValues: {
     type: [String],
     default: []
   },
@@ -33,7 +37,14 @@ const pageSchema = new mongoose.Schema({
   },
   keepLastNRows: {
     type: Number,
-    default: 366
+    default: 125
+  },
+  allQData: {
+    type: [{
+      aValues: [String],
+      bValues: [String]
+    }],
+    default: undefined
   },
   updatedAt: {
     type: Date,

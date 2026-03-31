@@ -24,7 +24,7 @@
 ## Kết quả:
 
 - ✅ Scroll ngang (cho 20 cột Q)
-- ✅ Scroll dọc (cho 366 dòng)
+- ✅ Scroll dọc (cho 125 dòng)
 - ✅ Chiều cao tự động theo màn hình
 - ✅ Border để dễ nhìn
 

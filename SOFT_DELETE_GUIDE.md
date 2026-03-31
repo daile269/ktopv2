@@ -86,7 +86,7 @@ export const loadPageData = async (pageId) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
 
-      const ROWS = 366;
+      const ROWS = 125;
       const t1 = data.t1Values || [];
       const t2 = data.t2Values || [];
       const dates = data.dateValues || [];

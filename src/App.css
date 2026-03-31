@@ -356,8 +356,8 @@ body {
 }
 
 .data-cell.date-col {
-  min-width: 100px;
-  max-width: 120px;
+  min-width: 300px !important;
+  max-width: 350px !important;
   text-align: left;
   padding-left: 12px;
   font-size: 30px;
@@ -575,8 +575,8 @@ body {
 
 .table-section {
   flex: 0 0 auto; /* Không co lại */
-  min-width: 1300px; /* Width tối thiểu để giữ nguyên chiều rộng */
-  width: 1300px; /* Width cố định */
+  min-width: 1500px; /* Width tối thiểu để giữ nguyên chiều rộng */
+  width: 1500px; /* Width cố định */
 }
 
 .table-title {

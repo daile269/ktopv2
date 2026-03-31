@@ -12,7 +12,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
  * @param {number} purpleRangeTo - Khoảng số kết thúc tô tím
  * @param {number} keepLastNRows - Số dòng tồn tại
  */
-export const savePageData = async (pageId, t1Values, t2Values, dateValues, deletedRows = [], purpleRangeFrom = 0, purpleRangeTo = 0, keepLastNRows = 366) => {
+export const savePageData = async (pageId, aValues, bValues, zValues, dateValues, deletedRows = [], purpleRangeFrom = 0, purpleRangeTo = 0, keepLastNRows = 125, allQData = undefined) => {
   try {
     const response = await fetch(`${API_URL}/api/pages/${pageId}`, {
       method: 'POST',
@@ -20,13 +20,15 @@ export const savePageData = async (pageId, t1Values, t2Values, dateValues, delet
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        t1Values,
-        t2Values,
+        aValues,
+        bValues,
+        zValues,
         dateValues,
         deletedRows,
         purpleRangeFrom,
         purpleRangeTo,
-        keepLastNRows
+        keepLastNRows,
+        allQData
       })
     });
 
@@ -59,31 +61,35 @@ export const loadPageData = async (pageId) => {
     if (result.success && result.data) {
       const data = result.data;
       
-      // Pad data về 366 rows (match với App.jsx)
-      const ROWS = 366;
+      // Pad data về 125 rows (match với App.jsx)
+      const ROWS = 125;
       
       // Ensure data is always an array
-      const t1 = Array.isArray(data.t1Values) ? [...data.t1Values] : [];
-      const t2 = Array.isArray(data.t2Values) ? [...data.t2Values] : [];
+      const a = Array.isArray(data.aValues) ? [...data.aValues] : [];
+      const b = Array.isArray(data.bValues) ? [...data.bValues] : [];
+      const z = Array.isArray(data.zValues) ? [...data.zValues] : [];
       const dates = Array.isArray(data.dateValues) ? [...data.dateValues] : [];
       const deleted = Array.isArray(data.deletedRows) ? [...data.deletedRows] : [];
       
       // Pad với empty strings/false
-      while (t1.length < ROWS) t1.push('');
-      while (t2.length < ROWS) t2.push('');
+      while (a.length < ROWS) a.push('');
+      while (b.length < ROWS) b.push('');
+      while (z.length < ROWS) z.push('');
       while (dates.length < ROWS) dates.push('');
       while (deleted.length < ROWS) deleted.push(false);
 
       return { 
         success: true, 
         data: {
-          t1Values: t1,
-          t2Values: t2,
+          aValues: a,
+          bValues: b,
+          zValues: z,
           dateValues: dates,
           deletedRows: deleted,
           purpleRangeFrom: data.purpleRangeFrom || 0,
           purpleRangeTo: data.purpleRangeTo || 0,
-          keepLastNRows: data.keepLastNRows || 366
+          keepLastNRows: data.keepLastNRows || 125,
+          allQData: data.allQData
         }
       };
     } else {
