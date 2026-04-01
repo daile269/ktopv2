@@ -1,5 +1,5 @@
 // API Configuration
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 /**
  * Lưu dữ liệu trang lên MongoDB qua Backend API
@@ -12,12 +12,23 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
  * @param {number} purpleRangeTo - Khoảng số kết thúc tô tím
  * @param {number} keepLastNRows - Số dòng tồn tại
  */
-export const savePageData = async (pageId, aValues, bValues, zValues, dateValues, deletedRows = [], purpleRangeFrom = 0, purpleRangeTo = 0, keepLastNRows = 125, allQData = undefined) => {
+export const savePageData = async (
+  pageId,
+  aValues,
+  bValues,
+  zValues,
+  dateValues,
+  deletedRows = [],
+  purpleRangeFrom = 0,
+  purpleRangeTo = 0,
+  keepLastNRows = 125,
+  allQData = undefined,
+) => {
   try {
     const response = await fetch(`${API_URL}/api/pages/${pageId}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         aValues,
@@ -28,19 +39,19 @@ export const savePageData = async (pageId, aValues, bValues, zValues, dateValues
         purpleRangeFrom,
         purpleRangeTo,
         keepLastNRows,
-        allQData
-      })
+        allQData,
+      }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to save data');
+      throw new Error(data.error || "Failed to save data");
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Lỗi khi lưu dữ liệu:', error);
+    console.error("Lỗi khi lưu dữ liệu:", error);
     return { success: false, error: error.message };
   }
 };
@@ -55,31 +66,33 @@ export const loadPageData = async (pageId) => {
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.error || 'Failed to load data');
+      throw new Error(result.error || "Failed to load data");
     }
 
     if (result.success && result.data) {
       const data = result.data;
-      
+
       // Pad data về 125 rows (match với App.jsx)
       const ROWS = 125;
-      
+
       // Ensure data is always an array
       const a = Array.isArray(data.aValues) ? [...data.aValues] : [];
       const b = Array.isArray(data.bValues) ? [...data.bValues] : [];
       const z = Array.isArray(data.zValues) ? [...data.zValues] : [];
       const dates = Array.isArray(data.dateValues) ? [...data.dateValues] : [];
-      const deleted = Array.isArray(data.deletedRows) ? [...data.deletedRows] : [];
-      
+      const deleted = Array.isArray(data.deletedRows)
+        ? [...data.deletedRows]
+        : [];
+
       // Pad với empty strings/false
-      while (a.length < ROWS) a.push('');
-      while (b.length < ROWS) b.push('');
-      while (z.length < ROWS) z.push('');
-      while (dates.length < ROWS) dates.push('');
+      while (a.length < ROWS) a.push("");
+      while (b.length < ROWS) b.push("");
+      while (z.length < ROWS) z.push("");
+      while (dates.length < ROWS) dates.push("");
       while (deleted.length < ROWS) deleted.push(false);
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         data: {
           aValues: a,
           bValues: b,
@@ -89,15 +102,15 @@ export const loadPageData = async (pageId) => {
           purpleRangeFrom: data.purpleRangeFrom || 0,
           purpleRangeTo: data.purpleRangeTo || 0,
           keepLastNRows: data.keepLastNRows || 125,
-          allQData: data.allQData
-        }
+          allQData: data.allQData,
+        },
       };
     } else {
       console.log(`No data found for ${pageId}, returning null`);
       return { success: true, data: null };
     }
   } catch (error) {
-    console.error('Lỗi khi tải dữ liệu:', error);
+    console.error("Lỗi khi tải dữ liệu:", error);
     return { success: false, error: error.message };
   }
 };
@@ -109,18 +122,18 @@ export const loadPageData = async (pageId) => {
 export const deletePageData = async (pageId) => {
   try {
     const response = await fetch(`${API_URL}/api/pages/${pageId}`, {
-      method: 'DELETE'
+      method: "DELETE",
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to delete data');
+      throw new Error(data.error || "Failed to delete data");
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Lỗi khi xóa dữ liệu:', error);
+    console.error("Lỗi khi xóa dữ liệu:", error);
     return { success: false, error: error.message };
   }
 };

@@ -809,7 +809,7 @@ function InputPage() {
                   border: "none",
                 }}
               >
-                🔍 Tra cứu
+                🔍 Ok toán
               </button>
             </div>
           </div>
