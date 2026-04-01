@@ -928,7 +928,7 @@ function InputPage() {
             style={{ maxWidth: "800px", width: "95%" }}
           >
             <h2 style={{ fontSize: "24px", marginBottom: "20px" }}>
-              🚀 Xác nhận thêm vào bảng tính
+              🚀 Bạn có chắc chọn chọn dòng thông
             </h2>
 
             <div
@@ -976,7 +976,7 @@ function InputPage() {
                   fontSize: "20px",
                 }}
               >
-                Hủy
+                Chọn lại
               </button>
               <button
                 onClick={handleConfirmAddToApp}
@@ -994,7 +994,7 @@ function InputPage() {
                   opacity: isAddingToCalc ? 0.7 : 1,
                 }}
               >
-                {isAddingToCalc ? "⌛ Đang xử lý..." : "✅ Xác nhận thêm"}
+                {isAddingToCalc ? "⌛ Đang thêm..." : "✅ OK chọn"}
               </button>
             </div>
           </div>

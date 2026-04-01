@@ -8,7 +8,7 @@ import Page from "./models/Page.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5010;
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/ktop-new";
 
@@ -143,11 +143,16 @@ app.post("/api/pages/:pageId", async (req, res) => {
     }
 
     // Trim empty values at the end
-    const trimmedA = (lastIndex >= 0 && aValues) ? aValues.slice(0, lastIndex + 1) : [];
-    const trimmedB = (lastIndex >= 0 && bValues) ? bValues.slice(0, lastIndex + 1) : [];
-    const trimmedZ = (lastIndex >= 0 && zValues) ? zValues.slice(0, lastIndex + 1) : [];
-    const trimmedDates = (lastIndex >= 0 && dateValues) ? dateValues.slice(0, lastIndex + 1) : [];
-    const trimmedDeleted = (lastIndex >= 0 && deletedRows) ? deletedRows.slice(0, lastIndex + 1) : [];
+    const trimmedA =
+      lastIndex >= 0 && aValues ? aValues.slice(0, lastIndex + 1) : [];
+    const trimmedB =
+      lastIndex >= 0 && bValues ? bValues.slice(0, lastIndex + 1) : [];
+    const trimmedZ =
+      lastIndex >= 0 && zValues ? zValues.slice(0, lastIndex + 1) : [];
+    const trimmedDates =
+      lastIndex >= 0 && dateValues ? dateValues.slice(0, lastIndex + 1) : [];
+    const trimmedDeleted =
+      lastIndex >= 0 && deletedRows ? deletedRows.slice(0, lastIndex + 1) : [];
 
     // Update or create page
     const page = await Page.findOneAndUpdate(
