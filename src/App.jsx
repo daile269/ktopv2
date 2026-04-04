@@ -154,7 +154,9 @@ function App() {
       }
     }
     if (actualRows === 0) return [];
-    const table = Array(actualRows).fill(null).map(() => Array(10).fill(null));
+    const table = Array(actualRows)
+      .fill(null)
+      .map(() => Array(10).fill(null));
     for (let col = 0; col < 10; col++) {
       let y = 1;
       for (let row = 0; row < actualRows; row++) {
@@ -191,7 +193,9 @@ function App() {
         break;
       }
     }
-    const newTValuesArr = Array(10).fill(null).map(() => Array(ROWS).fill(""));
+    const newTValuesArr = Array(10)
+      .fill(null)
+      .map(() => Array(ROWS).fill(""));
     const newTableDataArr = [];
     for (let i = 0; i < 10; i++) {
       let v1, v2;
@@ -224,12 +228,22 @@ function App() {
 
   useEffect(() => {
     if (isDataLoaded) generateAllTables();
-  }, [dateValues, aValues, bValues, purpleRangeFrom, purpleRangeTo, isDataLoaded, deletedRows]);
+  }, [
+    dateValues,
+    aValues,
+    bValues,
+    purpleRangeFrom,
+    purpleRangeTo,
+    isDataLoaded,
+    deletedRows,
+  ]);
 
   useEffect(() => {
     if (isDataLoaded && allTableData.length > 0) {
       setTimeout(() => {
-        tableRefs.current.forEach(ref => ref && (ref.scrollTop = ref.scrollHeight));
+        tableRefs.current.forEach(
+          (ref) => ref && (ref.scrollTop = ref.scrollHeight),
+        );
       }, 150);
     }
   }, [isDataLoaded, pageId]);
@@ -249,14 +263,25 @@ function App() {
         const qId = `q${i}`;
         const res = await loadPageData(qId);
         if (res.success && res.data) {
-          const { aValues: qa, bValues: qb, dateValues: qd, deletedRows: qdel, purpleRangeFrom: pf, purpleRangeTo: pt } = res.data;
+          const {
+            aValues: qa,
+            bValues: qb,
+            dateValues: qd,
+            deletedRows: qdel,
+            purpleRangeFrom: pf,
+            purpleRangeTo: pt,
+          } = res.data;
           if (pf && pt) {
             let lastIdx = -1;
             for (let r = ROWS - 1; r >= 0; r--) {
-              if (!qdel?.[r] && (qd?.[r] || qa?.[r] || qb?.[r])) { lastIdx = r; break; }
+              if (!qdel?.[r] && (qd?.[r] || qa?.[r] || qb?.[r])) {
+                lastIdx = r;
+                break;
+              }
             }
             if (lastIdx !== -1) {
-              const t1 = [], t2 = [];
+              const t1 = [],
+                t2 = [];
               for (let r = 0; r <= lastIdx; r++) {
                 const nA = parseInt(qa?.[r]) || 0;
                 const nB = parseInt(qb?.[r]) || 0;
@@ -265,13 +290,17 @@ function App() {
                 t2.push((nB + valT1) % 10);
               }
               let hasP = false;
-              [t1, t2].forEach(tv => {
+              [t1, t2].forEach((tv) => {
                 for (let c = 0; c < 10; c++) {
                   let y = 1;
                   for (let r = 0; r <= lastIdx; r++) {
                     if (qdel?.[r]) continue;
-                    if (r === lastIdx && y >= pf && y <= pt) { hasP = true; break; }
-                    if (tv[r] === c) y = 1; else y++;
+                    if (r === lastIdx && y >= pf && y <= pt) {
+                      hasP = true;
+                      break;
+                    }
+                    if (tv[r] === c) y = 1;
+                    else y++;
                   }
                   if (hasP) break;
                 }
@@ -325,10 +354,7 @@ function App() {
     // Tìm hàng dưới cùng (hàng mới nhất có dữ liệu)
     let lastRowIndex = -1;
     for (let i = dateValues.length - 1; i >= 0; i--) {
-      if (
-        !deletedRows[i] &&
-        (dateValues[i] || aValues[i] || bValues[i])
-      ) {
+      if (!deletedRows[i] && (dateValues[i] || aValues[i] || bValues[i])) {
         lastRowIndex = i;
         break;
       }
@@ -402,7 +428,6 @@ function App() {
 
   // Duplicated effects removed, moved to top.
 
-
   // Thuật toán sinh bảng (dùng chung cho cả 2 toa)
   const generateTableData = (tValues, toaName, skipColor = false) => {
     const COLS = 10;
@@ -451,14 +476,15 @@ function App() {
       for (let row = 0; row < actualRows; row++) {
         // Bỏ qua hàng rỗng để không ảnh hưởng đến y (Logic đếm ban đầu)
         if (tValues[row] === "" && !dateValues[row]) {
-           table[row][col] = { value: "", color: "white" };
-           continue;
+          table[row][col] = { value: "", color: "white" };
+          continue;
         }
 
         let currentY = y;
 
         // Lấy giá trị T của hàng này
-        const tColumnForThisRow = tValues[row] !== "" ? parseInt(tValues[row]) : -1;
+        const tColumnForThisRow =
+          tValues[row] !== "" ? parseInt(tValues[row]) : -1;
 
         // Xác định màu
         let color = "white";
@@ -516,16 +542,16 @@ function App() {
         (aValues[i] !== "" &&
           aValues[i] !== null &&
           aValues[i] !== undefined) ||
-        (bValues[i] !== "" &&
-          bValues[i] !== null &&
-          bValues[i] !== undefined)
+        (bValues[i] !== "" && bValues[i] !== null && bValues[i] !== undefined)
       ) {
         actualRows = i + 1;
         break;
       }
     }
 
-    const newAllTValues = Array(TOTAL_TABLES).fill(null).map(() => Array(ROWS).fill(""));
+    const newAllTValues = Array(TOTAL_TABLES)
+      .fill(null)
+      .map(() => Array(ROWS).fill(""));
     const newAllTableData = [];
 
     // Tính toán giá trị T cho tất cả 10 bảng
@@ -778,7 +804,7 @@ function App() {
     setNewRowDate(""); // Reset date
     setNewRowT1(""); // Reuse T1 state as A
     setNewRowT2(""); // Reuse T2 state as B
-    setNewRowZ("");  // Add Z
+    setNewRowZ(""); // Add Z
     setShowAddRowModal(true);
   };
 
@@ -1275,7 +1301,11 @@ function App() {
       let deletedCount = 0;
 
       // Xóa các dòng dựa trên STT hiển thị
-      for (let vIdx = from - 1; vIdx <= Math.min(to - 1, visibleIndices.length - 1); vIdx++) {
+      for (
+        let vIdx = from - 1;
+        vIdx <= Math.min(to - 1, visibleIndices.length - 1);
+        vIdx++
+      ) {
         const actualIndex = visibleIndices[vIdx];
         newDeletedRows[actualIndex] = true;
         deletedCount++;
@@ -1320,7 +1350,9 @@ function App() {
 
       if (result.success) {
         setSaveStatus("✅ Đã lưu dữ liệu thành công");
-        alert(`✅ Đã xóa ${deletedCount} dòng từ STT ${from} đến ${to} (đồng bộ Q1-Q10)!`);
+        alert(
+          `✅ Đã xóa ${deletedCount} dòng từ STT ${from} đến ${to} (đồng bộ Q1-Q10)!`,
+        );
       } else {
         setSaveStatus("⚠️ Lỗi: " + result.error);
       }
@@ -1486,7 +1518,7 @@ function App() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "15px"
+            gap: "15px",
           }}
         >
           {/* Nhãn phân biệt Web */}
@@ -1496,13 +1528,16 @@ function App() {
                 fontSize: "16px",
                 padding: "4px 12px",
                 borderRadius: "20px",
-                backgroundColor: import.meta.env.VITE_SITE_ID === "site_a" ? "#007bff" : "#6c757d",
+                backgroundColor:
+                  import.meta.env.VITE_SITE_ID === "site_a"
+                    ? "#007bff"
+                    : "#6c757d",
                 color: "white",
                 fontStyle: "normal",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
               }}
             >
-              Vùng: {import.meta.env.VITE_SITE_ID === "site_a" ? "A" : "B"}
+              APP: {import.meta.env.VITE_SITE_ID === "site_a" ? "A" : "B"}
             </span>
           )}
           Dự án cải tạo môi trường thềm lục địa biển Việt Nam -
@@ -1856,7 +1891,11 @@ function App() {
                       </tr>
                       <tr>
                         <th className="col-header fixed">STT</th>
-                        <th className="col-header fixed" colSpan="2" style={{ minWidth: "300px", width: "300px" }}>
+                        <th
+                          className="col-header fixed"
+                          colSpan="2"
+                          style={{ minWidth: "300px", width: "300px" }}
+                        >
                           Ngày
                         </th>
                         {tableIndex === 0 && (
@@ -1953,9 +1992,11 @@ function App() {
                                         background: "transparent",
                                         fontSize: "35px",
                                         textAlign: "center",
-                                        color: highlightedACells[rowIndex] ? "white" : "#ef4444",
+                                        color: highlightedACells[rowIndex]
+                                          ? "white"
+                                          : "#ef4444",
                                         fontWeight: "600",
-                                        pointerEvents: "none"
+                                        pointerEvents: "none",
                                       }}
                                     />
                                   </td>
@@ -1978,9 +2019,11 @@ function App() {
                                         background: "transparent",
                                         fontSize: "35px",
                                         textAlign: "center",
-                                        color: highlightedBCells[rowIndex] ? "white" : "#ef4444",
+                                        color: highlightedBCells[rowIndex]
+                                          ? "white"
+                                          : "#ef4444",
                                         fontWeight: "600",
-                                        pointerEvents: "none"
+                                        pointerEvents: "none",
                                       }}
                                     />
                                   </td>
@@ -2365,7 +2408,9 @@ function App() {
                   type="text"
                   maxLength={6}
                   value={newRowZ}
-                  onChange={(e) => setNewRowZ(e.target.value.replace(/[^0-9]/g, ""))}
+                  onChange={(e) =>
+                    setNewRowZ(e.target.value.replace(/[^0-9]/g, ""))
+                  }
                   placeholder="Nhập Z (6 số)"
                   style={{
                     width: "100%",

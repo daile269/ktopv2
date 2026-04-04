@@ -346,7 +346,7 @@ function InputPage() {
 
     if (result.success) {
       setSaveStatus("✅ Đã lưu Master!");
-      alert("✅ Đã lưu Master thành công!");
+      alert("✅ Đã lưu dữ liệu bảng thông thành công!");
     } else {
       setSaveStatus("⚠️ Lỗi!");
       alert("⚠️ Lỗi khi lưu vào Master: " + (result.error || "Không xác định"));
@@ -356,7 +356,6 @@ function InputPage() {
 
   // Helper function to format date to DD/MM/YYYY
   // formatDateSimple removed
-
 
   const handleToggleSelect = useCallback((rowIndex) => {
     setSelectedRows((prev) => {
@@ -379,7 +378,6 @@ function InputPage() {
   }, []);
 
   // Date change has been removed
-
 
   const handleAChange = useCallback((qIdx, rIdx, val) => {
     setAllQData((prev) => {
@@ -542,7 +540,7 @@ function InputPage() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "15px"
+            gap: "15px",
           }}
         >
           {/* Nhãn phân biệt Web */}
@@ -552,13 +550,16 @@ function InputPage() {
                 fontSize: "16px",
                 padding: "4px 12px",
                 borderRadius: "20px",
-                backgroundColor: import.meta.env.VITE_SITE_ID === "site_a" ? "#007bff" : "#6c757d",
+                backgroundColor:
+                  import.meta.env.VITE_SITE_ID === "site_a"
+                    ? "#007bff"
+                    : "#6c757d",
                 color: "white",
                 fontStyle: "normal",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
               }}
             >
-              Vùng: {import.meta.env.VITE_SITE_ID === "site_a" ? "A" : "B"}
+              APP: {import.meta.env.VITE_SITE_ID === "site_a" ? "A" : "B"}
             </span>
           )}
           Dự án cải tạo môi trường thềm lục địa biển Việt Nam -
