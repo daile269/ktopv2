@@ -40,11 +40,11 @@ const TaskRow = memo(
         <td style={{ textAlign: "center", fontSize: "20px" }}>
           {String(displayRowNumber).padStart(3, "0")}
         </td>
-        <td>
+        <td style={{ width: "250px", minWidth: "250px" }}>
           <input
             type="text"
             className="cell-input"
-            maxLength={6}
+            maxLength={10}
             value={isDeleted ? "" : zValue || ""}
             onChange={(e) => onZChange(rowIndex, e.target.value)}
             disabled={isDeleted}
@@ -173,7 +173,7 @@ function InputPage() {
     };
 
     loadData();
-  }, []);
+  }, [ROWS]);
 
   // Auto scroll to last row with data
   useEffect(() => {
@@ -223,7 +223,6 @@ function InputPage() {
           }
 
           // Scroll đến dòng này (+2 vì có 2 header rows)
-          const displayRowNumberLocal = displayRowNumber; // local copy
           const rowElement = document.querySelector(
             `tbody tr:nth-child(${displayRowNumber - 1})`, // +1 để scroll xuống thêm 1 dòng
           );
@@ -245,7 +244,7 @@ function InputPage() {
         }, 500);
       }
     }
-  }, [isLoading]);
+  }, [isLoading, dateValues, deletedRows, allQData, zValues]);
 
   // Keep last N rows - hide all rows except last N rows with data
   const handleKeepLastNRows = async () => {
@@ -367,11 +366,10 @@ function InputPage() {
   }, []);
 
   const handleZChange = useCallback((rIdx, val) => {
-    const v = val.replace(/[^0-9]/g, "");
-    if (v.length <= 6) {
+    if (val.length <= 10) {
       setZValues((prev) => {
         const next = [...prev];
-        next[rIdx] = v;
+        next[rIdx] = val;
         return next;
       });
     }
@@ -488,6 +486,7 @@ function InputPage() {
       setSelectedRows({});
       setShowAddModal(false);
     } catch (err) {
+      console.error("Lỗi trong quá trình thêm:", err);
       alert("⚠️ Lỗi trong quá trình thêm!");
     } finally {
       setIsAddingToCalc(false);
@@ -559,7 +558,7 @@ function InputPage() {
                 boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
               }}
             >
-              APP: {import.meta.env.VITE_SITE_ID === "site_a" ? "A" : "B"}
+              Bảng thông - APP: {import.meta.env.VITE_SITE_ID === "site_a" ? "A" : "B"}
             </span>
           )}
           Dự án cải tạo môi trường thềm lục địa biển Việt Nam -
@@ -727,7 +726,7 @@ function InputPage() {
                   border: "none",
                 }}
               >
-                ➕ Kích chọn số dòng thông
+                ➕ Chọn dòng thông và nhập ngày tháng năm
               </button>
               {saveStatus && (
                 <span style={{ color: "#28a745" }}>{saveStatus}</span>
@@ -773,7 +772,7 @@ function InputPage() {
                   <th rowSpan="2" style={{ padding: "8px 4px" }}>
                     STT
                   </th>
-                  <th rowSpan="2" style={{ minWidth: "140px", width: "140px" }}>
+                  <th rowSpan="2" style={{ minWidth: "250px", width: "250px" }}>
                     Z
                   </th>
                   {/* Ngày đã bị loại bỏ */}

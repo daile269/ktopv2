@@ -578,11 +578,11 @@ body {
 
 .table-section {
   flex: 0 0 auto;
-  width: 1680px; /* Width cho các bảng T2-T10 */
+  width: 2210px; /* Increased to accommodate 530px Z column */
 }
 
 .table-section.first-table {
-  width: 1840px; /* Width cho bảng T1 (có thêm A, B = 160px) */
+  width: 2370px; /* Increased to accommodate 530px Z column */
 }
 
 .table-title {

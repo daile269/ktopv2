@@ -315,7 +315,7 @@ function App() {
     loadAllInfo();
   }, [purpleRangeFrom, purpleRangeTo]);
 
-  if (pathname === "input") {
+  if (pathname === "input" || !pathname) {
     return <InputPage />;
   }
 
@@ -870,7 +870,7 @@ function App() {
         const qZ = [...(result.data.zValues || [])];
         qA[newRowIndex] = newRowT1;
         qB[newRowIndex] = newRowT2;
-        qZ[newRowIndex] = newRowZ;
+        qZ[newRowIndex] = newRowZ.slice(0, 10);
 
         syncPromises.push(
           savePageData(
@@ -1537,7 +1537,7 @@ function App() {
                 boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
               }}
             >
-              APP: {import.meta.env.VITE_SITE_ID === "site_a" ? "A" : "B"}
+              Bảng tính - APP: {import.meta.env.VITE_SITE_ID === "site_a" ? "A" : "B"}
             </span>
           )}
           Dự án cải tạo môi trường thềm lục địa biển Việt Nam -
@@ -1868,7 +1868,7 @@ function App() {
                   <table className="data-grid">
                     <thead>
                       <tr>
-                        <th colSpan="3" className="group-header">
+                        <th colSpan="4" className="group-header">
                           Q{pageId.replace("q", "")}
                         </th>
                         {tableIndex === 0 && (
@@ -1893,6 +1893,12 @@ function App() {
                         <th className="col-header fixed">STT</th>
                         <th
                           className="col-header fixed"
+                          style={{ minWidth: "530px", width: "530px" }}
+                        >
+                          Z
+                        </th>
+                        <th
+                          className="col-header fixed date-col-header"
                           colSpan="2"
                           style={{ minWidth: "300px", width: "300px" }}
                         >
@@ -1924,6 +1930,56 @@ function App() {
                             <tr key={rowIndex}>
                               <td className="data-cell fixed">
                                 {String(displayRowNumber).padStart(3, "0")}
+                              </td>
+                              <td
+                                className="data-cell fixed"
+                                style={{ minWidth: "530px", width: "530px" }}
+                              >
+                                <input
+                                  type="text"
+                                  className="grid-input"
+                                  value={zValues[rowIndex] || ""}
+                                  onChange={async (e) => {
+                                    const val = e.target.value;
+                                    if (val.length > 10) return;
+
+                                    const newZValues = [...zValues];
+                                    newZValues[rowIndex] = val;
+                                    setZValues(newZValues);
+
+                                    // Sync sang tất cả Q1-Q10
+                                    const syncPromises = [];
+                                    for (let i = 1; i <= 10; i++) {
+                                      const qId = `q${i}`;
+                                      const result = await loadPageData(qId);
+                                      if (result.success && result.data) {
+                                        syncPromises.push(
+                                          savePageData(
+                                            qId,
+                                            result.data.aValues,
+                                            result.data.bValues,
+                                            newZValues,
+                                            dateValues,
+                                            result.data.deletedRows || [],
+                                            purpleRangeFrom,
+                                            purpleRangeTo,
+                                            keepLastNRows,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                    await Promise.all(syncPromises);
+                                  }}
+                                  style={{
+                                    width: "100%",
+                                    border: "none",
+                                    background: "transparent",
+                                    fontSize: "22px",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                    color: "#333",
+                                  }}
+                                />
                               </td>
                               <td
                                 className="data-cell fixed date-col"
@@ -2406,12 +2462,10 @@ function App() {
                 </label>
                 <input
                   type="text"
-                  maxLength={6}
+                  maxLength={10}
                   value={newRowZ}
-                  onChange={(e) =>
-                    setNewRowZ(e.target.value.replace(/[^0-9]/g, ""))
-                  }
-                  placeholder="Nhập Z (6 số)"
+                  onChange={(e) => setNewRowZ(e.target.value)}
+                  placeholder="Nhập Z (tối đa 10 ký tự)"
                   style={{
                     width: "100%",
                     padding: "12px",
