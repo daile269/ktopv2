@@ -211,44 +211,9 @@ function InputPage() {
   // Auto scroll to last row with data
   useEffect(() => {
     if (!isLoading && dateValues.length > 0) {
-      // Tìm dòng cuối cùng có dữ liệu (ngày hoặc T1/T2 của bất kỳ Q nào) và chưa xóa
-      let lastDataRowIndex = -1;
-      for (let i = dateValues.length - 1; i >= 0; i--) {
-        // Bỏ qua dòng đã xóa
-        if (deletedRows[i]) continue;
-
-        // Kiểm tra xem dòng này có dữ liệu không (ngày hoặc T1/T2 của bất kỳ Q nào)
-        let hasData =
-          dateValues[i] !== "" &&
-          dateValues[i] !== null &&
-          dateValues[i] !== undefined;
-
-        // Nếu chưa có ngày, kiểm tra A/B của tất cả Q
-        if (!hasData) {
-          for (let qIndex = 0; qIndex < 10; qIndex++) {
-            const a = allQData[qIndex]?.aValues[i];
-            const b = allQData[qIndex]?.bValues[i];
-            const z = zValues[i];
-            if ((a && a !== "") || (b && b !== "") || (z && z !== "")) {
-              hasData = true;
-              break;
-            }
-          }
-        }
-
-        if (hasData) {
-          lastDataRowIndex = i;
-          break;
-        }
-      }
-
-      // Nếu không tìm thấy dòng có dữ liệu, mặc định scroll đến dòng 50 (index 49) nếu có
-      let targetRowIndex = lastDataRowIndex;
-      let isDefaultScroll = false;
-      if (targetRowIndex === -1 && dateValues.length >= 50) {
-        targetRowIndex = 49;
-        isDefaultScroll = true;
-      }
+      // Luôn scroll đến dòng 50 (index 49) theo yêu cầu, mặc kệ có dữ liệu hay không
+      let targetRowIndex = dateValues.length >= 50 ? 49 : dateValues.length - 1;
+      let isDefaultScroll = true;
 
       if (targetRowIndex >= 0) {
         // Delay để đảm bảo DOM đã render xong
