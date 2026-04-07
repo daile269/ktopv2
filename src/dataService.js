@@ -38,7 +38,7 @@ export const savePageData = async (
   sourceSTTValues = [],
   purpleRangeFrom = 0,
   purpleRangeTo = 0,
-  keepLastNRows = 125,
+  keepLastNRows = 126,
   allQData = undefined,
 ) => {
   try {
@@ -95,7 +95,7 @@ export const loadPageData = async (pageId) => {
       const data = result.data;
 
       // Pad data về 125 rows (match với App.jsx)
-      const ROWS = 125;
+      const ROWS = 126;
 
       // Ensure data is always an array
       const a = Array.isArray(data.aValues) ? [...data.aValues] : [];
@@ -128,7 +128,7 @@ export const loadPageData = async (pageId) => {
           sourceSTTValues: sourceSTTs,
           purpleRangeFrom: data.purpleRangeFrom || 0,
           purpleRangeTo: data.purpleRangeTo || 0,
-          keepLastNRows: data.keepLastNRows || 125,
+          keepLastNRows: data.keepLastNRows || 126,
           allQData: data.allQData,
         },
       };

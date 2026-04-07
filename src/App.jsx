@@ -13,18 +13,18 @@ function App() {
   const [allTValues, setAllTValues] = useState(
     Array(10)
       .fill(null)
-      .map(() => Array(125).fill("")),
+      .map(() => Array(126).fill("")),
   );
-  const [dateValues, setDateValues] = useState(Array(125).fill(""));
-  const [sourceSTTValues, setSourceSTTValues] = useState(Array(125).fill(""));
+  const [dateValues, setDateValues] = useState(Array(126).fill(""));
+  const [sourceSTTValues, setSourceSTTValues] = useState(Array(126).fill(""));
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
 
-  const [aValues, setAValues] = useState(Array(125).fill(""));
-  const [bValues, setBValues] = useState(Array(125).fill(""));
+  const [aValues, setAValues] = useState(Array(126).fill(""));
+  const [bValues, setBValues] = useState(Array(126).fill(""));
 
   const [highlightedCells, setHighlightedCells] = useState({});
   const [highlightedTCells, setHighlightedTCells] = useState({});
@@ -43,8 +43,8 @@ function App() {
   const [keepLastNRows, setKeepLastNRows] = useState("");
   const [purpleRangeFrom, setPurpleRangeFrom] = useState(0);
   const [purpleRangeTo, setPurpleRangeTo] = useState(0);
-  const [deletedRows, setDeletedRows] = useState(Array(125).fill(false));
-  const [zValues, setZValues] = useState(Array(125).fill(""));
+  const [deletedRows, setDeletedRows] = useState(Array(126).fill(false));
+  const [zValues, setZValues] = useState(Array(126).fill(""));
   const [showDeleteFirstRowModal, setShowDeleteFirstRowModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showKeepLastNRowsModal, setShowKeepLastNRowsModal] = useState(false);
@@ -74,7 +74,7 @@ function App() {
   const scrollTimeoutRef = useRef(null);
 
   const TOTAL_TABLES = 10;
-  const ROWS = 125;
+  const ROWS = 126;
   const pathname = window.location.pathname.slice(1);
   const pageId = pathname || "q1";
 
@@ -614,6 +614,7 @@ function App() {
         pageId,
         aValues,
         bValues,
+        zValues,
         dateValues,
         deletedRows,
         sourceSTTValues,
@@ -887,6 +888,7 @@ function App() {
             qZ,
             newDateValues,
             newDeletedRows,
+            sourceSTTValues,
             purpleRangeFrom,
             purpleRangeTo,
             keepLastNRows,
@@ -968,6 +970,7 @@ function App() {
             result.data.zValues || Array(ROWS).fill(""),
             dateValues,
             newDeletedRows,
+            sourceSTTValues,
             purpleRangeFrom,
             purpleRangeTo,
             n, // Use the new n
@@ -1063,6 +1066,7 @@ function App() {
             qZ,
             newDateValues,
             newDeletedRows,
+            sourceSTTValues,
             purpleRangeFrom,
             purpleRangeTo,
             keepLastNRows,
@@ -1116,8 +1120,10 @@ function App() {
             qId,
             result.data.aValues,
             result.data.bValues,
+            result.data.zValues || Array(ROWS).fill(""),
             dateValues,
             newDeletedRows,
+            sourceSTTValues,
             purpleRangeFrom,
             purpleRangeTo,
             keepLastNRows,
@@ -1234,6 +1240,7 @@ function App() {
         zValues,
         dateValues,
         newDeletedRows,
+        sourceSTTValues,
         purpleRangeFrom,
         purpleRangeTo,
         keepLastNRows,
@@ -1252,6 +1259,7 @@ function App() {
               qResult.data.zValues || Array(ROWS).fill(""),
               dateValues,
               newDeletedRows,
+              sourceSTTValues,
               purpleRangeFrom,
               purpleRangeTo,
               keepLastNRows,
@@ -1286,7 +1294,7 @@ function App() {
       const from = parseInt(deleteRowFrom);
       const to = parseInt(deleteRowTo);
 
-      if (isNaN(from) || isNaN(to) || from <= 0 || to <= 0 || from > to) {
+      if (isNaN(from) || isNaN(to) || from < 0 || to < 0 || from > to) {
         alert("⚠️ STT dòng không hợp lệ!");
         return;
       }
@@ -1299,7 +1307,7 @@ function App() {
         }
       }
 
-      if (from > visibleIndices.length) {
+      if (from >= visibleIndices.length) {
         alert("⚠️ STT bắt đầu vượt quá số lượng dòng hiện có!");
         return;
       }
@@ -1309,8 +1317,8 @@ function App() {
 
       // Xóa các dòng dựa trên STT hiển thị
       for (
-        let vIdx = from - 1;
-        vIdx <= Math.min(to - 1, visibleIndices.length - 1);
+        let vIdx = from;
+        vIdx <= Math.min(to, visibleIndices.length - 1);
         vIdx++
       ) {
         const actualIndex = visibleIndices[vIdx];
@@ -1329,6 +1337,7 @@ function App() {
         zValues,
         dateValues,
         newDeletedRows,
+        sourceSTTValues,
         purpleRangeFrom,
         purpleRangeTo,
         keepLastNRows,
@@ -1347,6 +1356,7 @@ function App() {
               qResult.data.zValues || Array(ROWS).fill(""),
               dateValues,
               newDeletedRows,
+              sourceSTTValues,
               purpleRangeFrom,
               purpleRangeTo,
               keepLastNRows,
@@ -1415,6 +1425,7 @@ function App() {
               result.data.zValues || Array(ROWS).fill(""),
               result.data.dateValues || dateValues,
               result.data.deletedRows || deletedRows,
+              result.data.sourceSTTValues || Array(ROWS).fill(""),
               from,
               to,
               result.data.keepLastNRows || keepLastNRows,
@@ -1472,6 +1483,7 @@ function App() {
               result.data.zValues || Array(ROWS).fill(""),
               result.data.dateValues || dateValues,
               result.data.deletedRows || deletedRows,
+              result.data.sourceSTTValues || Array(ROWS).fill(""),
               result.data.purpleRangeFrom || purpleRangeFrom,
               result.data.purpleRangeTo || purpleRangeTo,
               n,
@@ -1940,7 +1952,7 @@ function App() {
                     </thead>
                     <tbody>
                       {(() => {
-                        let displayRowNumber = 0;
+                        let displayRowNumber = -1;
                         return tableData.map((row, rowIndex) => {
                           // Skip deleted rows
                           if (deletedRows[rowIndex]) return null;
@@ -2028,6 +2040,7 @@ function App() {
                                             qId,
                                             result.data.aValues,
                                             result.data.bValues,
+                                            result.data.zValues || Array(ROWS).fill(""),
                                             newDateValues,
                                             result.data.deletedRows || [],
                                             sourceSTTValues,

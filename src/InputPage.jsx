@@ -125,9 +125,9 @@ const TaskRow = memo(
 );
 
 function InputPage() {
-  const MIN_ROWS = 125; // Minimum rows
-  const [keepLastNRows, setKeepLastNRows] = useState(125);
-  const ROWS = Math.max(MIN_ROWS, keepLastNRows); // Dynamic: min 125, or larger from DB
+  const MIN_ROWS = 126; // Minimum rows
+  const [keepLastNRows, setKeepLastNRows] = useState(126);
+  const ROWS = Math.max(MIN_ROWS, keepLastNRows); // Dynamic: min 126, or larger from DB
 
   // State cho A, B của 10Q
   const [allQData, setAllQData] = useState(
@@ -150,7 +150,10 @@ function InputPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [isAddingToCalc, setIsAddingToCalc] = useState(false);
   const [transferDate, setTransferDate] = useState(() => {
-    return localStorage.getItem("lastTransferDate") || new Date().toISOString().split("T")[0];
+    return (
+      localStorage.getItem("lastTransferDate") ||
+      new Date().toISOString().split("T")[0]
+    );
   });
 
   // States for Deletion
@@ -185,7 +188,7 @@ function InputPage() {
         setDateValues(d.dateValues || Array(ROWS).fill(""));
         setZValues(d.zValues || Array(ROWS).fill(""));
         setDeletedRows(d.deletedRows || Array(ROWS).fill(false));
-        setKeepLastNRows(d.keepLastNRows || 125);
+        setKeepLastNRows(d.keepLastNRows || 126);
         setPurpleRangeFrom(d.purpleRangeFrom || 0);
         setPurpleRangeTo(d.purpleRangeTo || 0);
       } else {
@@ -208,48 +211,53 @@ function InputPage() {
     loadData();
   }, [ROWS]);
 
-  // Auto scroll to last row with data
+  // Auto scroll to target row on load
   useEffect(() => {
     if (!isLoading && dateValues.length > 0) {
-      // Luôn scroll đến dòng 50 (index 49) theo yêu cầu, mặc kệ có dữ liệu hay không
-      let targetRowIndex = dateValues.length >= 50 ? 49 : dateValues.length - 1;
-      let isDefaultScroll = true;
+      const timer = setTimeout(() => {
+        let targetRowIndex =
+          dateValues.length >= 50 ? 49 : dateValues.length - 1;
 
-      if (targetRowIndex >= 0) {
-        // Delay để đảm bảo DOM đã render xong
-        setTimeout(() => {
-          // Tính vị trí hiển thị của dòng này
-          let displayRowNumber = 0;
-          for (let i = 0; i < dateValues.length; i++) {
-            if (!deletedRows[i]) {
-              displayRowNumber++;
-              if (i === targetRowIndex) break;
-            }
+        let displayRowNumber = 0;
+        for (let i = 0; i <= targetRowIndex; i++) {
+          if (!deletedRows[i]) {
+            displayRowNumber++;
           }
+        }
 
-          // Scroll đến dòng này
-          const rowElement = document.querySelector(
-            `tbody tr:nth-child(${displayRowNumber})`,
-          );
+        const rowElement = document.querySelector(
+          `tbody tr:nth-child(${displayRowNumber})`,
+        );
 
-          if (rowElement) {
-            rowElement.scrollIntoView({ behavior: "smooth", block: "center" });
-          } else if (isDefaultScroll) {
-            // Fallback: scroll container xuống khoảng giữa
-            const tableContainer =
-              document.querySelector(".schedule-table")?.parentElement;
-            if (tableContainer) {
-              const scrollPosition = tableContainer.scrollHeight * 0.4; // Gần dòng 50 của 125 dòng
-              tableContainer.scrollTo({
-                top: scrollPosition,
-                behavior: "smooth",
-              });
-            }
+        if (rowElement) {
+          rowElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+          const tableContainer =
+            document.querySelector(".schedule-table")?.parentElement;
+          if (tableContainer) {
+            tableContainer.scrollTo({
+              top: tableContainer.scrollHeight * 0.4,
+              behavior: "smooth",
+            });
           }
-        }, 500);
-      }
+        }
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [isLoading, dateValues, deletedRows, allQData, zValues]);
+  }, [isLoading, dateValues.length, deletedRows]);
+
+  // Lấy thông tin lần chuyển cuối từ localStorage
+  const [lastBatch, setLastBatch] = useState(() => {
+    const saved = localStorage.getItem("lastBatchInfo");
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    if (showAddModal) {
+      const saved = localStorage.getItem("lastBatchInfo");
+      setLastBatch(saved ? JSON.parse(saved) : null);
+    }
+  }, [showAddModal]);
 
   // Keep last N rows - hide all rows except last N rows with data
   const handleKeepLastNRows = async () => {
@@ -524,16 +532,22 @@ function InputPage() {
       purpleRangeFrom,
       purpleRangeTo,
       keepLastNRows,
-      Array(10).fill(null).map(() => ({
-        aValues: Array(dateValues.length).fill(""),
-        bValues: Array(dateValues.length).fill(""),
-      })),
+      Array(10)
+        .fill(null)
+        .map(() => ({
+          aValues: Array(dateValues.length).fill(""),
+          bValues: Array(dateValues.length).fill(""),
+        })),
     );
 
-    setAllQData(Array(10).fill(null).map(() => ({
-      aValues: Array(dateValues.length).fill(""),
-      bValues: Array(dateValues.length).fill(""),
-    })));
+    setAllQData(
+      Array(10)
+        .fill(null)
+        .map(() => ({
+          aValues: Array(dateValues.length).fill(""),
+          bValues: Array(dateValues.length).fill(""),
+        })),
+    );
     setZValues(Array(dateValues.length).fill(""));
     setDateValues(Array(dateValues.length).fill(""));
 
@@ -544,7 +558,7 @@ function InputPage() {
   const confirmDeleteByRows = async () => {
     const from = parseInt(deleteRowFrom);
     const to = parseInt(deleteRowTo);
-    if (isNaN(from) || isNaN(to) || from <= 0 || to < from) {
+    if (isNaN(from) || isNaN(to) || from < 0 || to < from) {
       alert("⚠️ Dãy số không hợp lệ!");
       return;
     }
@@ -556,7 +570,11 @@ function InputPage() {
 
     const newDeletedRows = [...deletedRows];
     let count = 0;
-    for (let vIdx = from - 1; vIdx <= Math.min(to - 1, visibleIndices.length - 1); vIdx++) {
+    for (
+      let vIdx = from;
+      vIdx <= Math.min(to, visibleIndices.length - 1);
+      vIdx++
+    ) {
       newDeletedRows[visibleIndices[vIdx]] = true;
       count++;
     }
@@ -613,84 +631,119 @@ function InputPage() {
     setSaveStatus("🚀 Đang thêm dòng vào bảng tính...");
 
     try {
+      // VALIDATE: Kiểm tra xem các dòng được chọn có giá trị A hoặc B không
+      for (const idx of selectedIndices) {
+        let hasValueInAnyQ = false;
+        for (let q = 0; q < 10; q++) {
+          if (
+            (allQData[q]?.aValues[idx] &&
+              String(allQData[q].aValues[idx]).trim() !== "") ||
+            (allQData[q]?.bValues[idx] &&
+              String(allQData[q].bValues[idx]).trim() !== "")
+          ) {
+            hasValueInAnyQ = true;
+            break;
+          }
+        }
+        if (!hasValueInAnyQ) {
+          alert(
+            `⚠️ Dòng thông ${idx} (Z: ${zValues[idx]}) đang trống A và B! Hãy nhập A và B để tiếp tục`,
+          );
+          setIsAddingToCalc(false);
+          setSaveStatus("");
+          return;
+        }
+      }
+
       for (let i = 1; i <= 10; i++) {
         const qId = `q${i}`;
-        // Get display row numbers for selected indices
-        // First, create a map of rowIndex to display order
-        const rowToSTT = {};
-        sortedIndices.forEach((rIdx, sIdx) => {
-          rowToSTT[rIdx] = sIdx + 1;
-        });
-
         const currentData = await loadPageData(qId);
+
+        // Lấy lại thông tin hiện tại của bảng tính để KHÔNG ghi đè sai lệch
+        const existingPurpleFrom =
+          currentData.success && currentData.data
+            ? currentData.data.purpleRangeFrom
+            : 0;
+        const existingPurpleTo =
+          currentData.success && currentData.data
+            ? currentData.data.purpleRangeTo
+            : 0;
+        const existingKeepN =
+          currentData.success && currentData.data
+            ? currentData.data.keepLastNRows
+            : MIN_ROWS;
+
         let activeA = [],
           activeB = [],
           activeZ = [],
           activeD = [],
           activeDel = [],
-          activeSourceSTT = []; // New array for source row numbers
+          activeSourceSTT = [];
 
         if (currentData.success && currentData.data) {
           const d = currentData.data;
-          // Tìm index của dòng cuối cùng có dữ liệu thực sự (không phải padding)
-          let lastDataIdx = -1;
-          for (let j = (d.aValues || []).length - 1; j >= 0; j--) {
-            if (!d.deletedRows?.[j]) {
-              const hasVal = 
-                d.aValues?.[j] !== "" || 
-                d.bValues?.[j] !== "" || 
-                d.zValues?.[j] !== "" || 
-                d.dateValues?.[j] !== "";
-              if (hasVal) {
-                lastDataIdx = j;
-                break;
-              }
+          const aVals = d.aValues || [];
+          const bVals = d.bValues || [];
+          const zVals = d.zValues || [];
+          const dVals = d.dateValues || [];
+          const delFlags = d.deletedRows || [];
+          const sourceVals = d.sourceSTTValues || [];
+
+          // COMPACTION: Loại bỏ TOÀN BỘ các dòng trống (không có bất kỳ dữ liệu nào)
+          for (let j = 0; j < aVals.length; j++) {
+            const hasAnyData =
+              (aVals[j] !== undefined &&
+                aVals[j] !== null &&
+                String(aVals[j]).trim() !== "") ||
+              (bVals[j] !== undefined &&
+                bVals[j] !== null &&
+                String(bVals[j]).trim() !== "") ||
+              (zVals[j] !== undefined &&
+                zVals[j] !== null &&
+                String(zVals[j]).trim() !== "") ||
+              (dVals[j] !== undefined &&
+                dVals[j] !== null &&
+                String(dVals[j]).trim() !== "");
+
+            // Nếu dòng thực sự có nội dung thì giữ lại, bất chấp cờ xóa
+            if (hasAnyData) {
+              activeA.push(aVals[j] || "");
+              activeB.push(bVals[j] || "");
+              activeZ.push(zVals[j] || "");
+              activeD.push(dVals[j] || "");
+              // Giữ nguyên cờ xóa nếu dòng có dữ liệu (có thể là dòng đã bị xóa ẩn đi)
+              activeDel.push(delFlags[j] === undefined ? false : delFlags[j]);
+              activeSourceSTT.push(sourceVals[j] || "");
             }
           }
-
-          // Chỉ giữ lại các dòng đến dòng có dữ liệu cuối cùng (loại bỏ padding ở cuối)
-          activeA = (d.aValues || []).slice(0, lastDataIdx + 1);
-          activeB = (d.bValues || []).slice(0, lastDataIdx + 1);
-          activeZ = (d.zValues || []).slice(0, lastDataIdx + 1);
-          activeD = (d.dateValues || []).slice(0, lastDataIdx + 1);
-          activeDel = (d.deletedRows || []).slice(0, lastDataIdx + 1);
-          activeSourceSTT = (d.sourceSTTValues || []).slice(0, lastDataIdx + 1);
-        } else {
-          activeA = [];
-          activeB = [];
-          activeZ = [];
-          activeD = [];
-          activeDel = [];
-          activeSourceSTT = [];
         }
 
-        // Append selected rows
+        // Append selected rows (to the end of existing data block)
         selectedIndices.forEach((idx) => {
-          activeA.push(allQData[i - 1].aValues[idx]);
-          activeB.push(allQData[i - 1].bValues[idx]);
-          activeZ.push(zValues[idx]);
+          activeA.push(allQData[i - 1].aValues[idx] || "");
+          activeB.push(allQData[i - 1].bValues[idx] || "");
+          activeZ.push(zValues[idx] || "");
           activeD.push(transferDate);
           activeDel.push(false);
-          activeSourceSTT.push(String(rowToSTT[idx]).padStart(3, "0"));
+          activeSourceSTT.push(String(idx).padStart(3, "0"));
         });
 
-        // Keep last 125
-        if (activeA.length > 125) {
-          activeA = activeA.slice(-125);
-          activeB = activeB.slice(-125);
-          activeZ = activeZ.slice(-125);
-          activeD = activeD.slice(-125);
-          activeDel = activeDel.slice(-125);
-          activeSourceSTT = activeSourceSTT.slice(-125);
+        // Consolidate at top by padding at the bottom (push)
+        if (activeA.length > existingKeepN) {
+          activeA = activeA.slice(-existingKeepN);
+          activeB = activeB.slice(-existingKeepN);
+          activeZ = activeZ.slice(-existingKeepN);
+          activeD = activeD.slice(-existingKeepN);
+          activeDel = activeDel.slice(-existingKeepN);
+          activeSourceSTT = activeSourceSTT.slice(-existingKeepN);
         } else {
-          // Pad back to 125 if needed
-          while (activeA.length < 125) {
-            activeA.unshift("");
-            activeB.unshift("");
-            activeZ.unshift("");
-            activeD.unshift("");
-            activeDel.unshift(true);
-            activeSourceSTT.unshift("");
+          while (activeA.length < existingKeepN) {
+            activeA.push("");
+            activeB.push("");
+            activeZ.push("");
+            activeD.push("");
+            activeDel.push(true);
+            activeSourceSTT.push("");
           }
         }
 
@@ -701,15 +754,24 @@ function InputPage() {
           activeZ,
           activeD,
           activeDel,
-          activeSourceSTT, // Passed here
-          purpleRangeFrom,
-          purpleRangeTo,
-          125,
+          activeSourceSTT,
+          existingPurpleFrom,
+          existingPurpleTo,
+          existingKeepN,
         );
       }
 
       setSaveStatus("✅ Đã thêm mới vào bảng tính!");
       alert(`✅ Đã thêm ${selectedIndices.length} dòng thành công!`);
+
+      // LƯU LẠI LỊCH SỬ LẦN VỪA CHUYỂN
+      const batchInfo = {
+        stts: selectedIndices.map((idx) => String(idx).padStart(3, "0")),
+        date: transferDate,
+      };
+      localStorage.setItem("lastBatchInfo", JSON.stringify(batchInfo));
+      setLastBatch(batchInfo);
+
       setSelectedRows({});
       setShowAddModal(false);
     } catch (err) {
@@ -1090,7 +1152,7 @@ function InputPage() {
                   <TaskRow
                     key={rowIndex}
                     rowIndex={rowIndex}
-                    displayRowNumber={idx + 1}
+                    displayRowNumber={idx}
                     isDeleted={deletedRows[rowIndex]}
                     isSelected={!!selectedRows[rowIndex]}
                     zValue={zValues[rowIndex]}
@@ -1114,12 +1176,65 @@ function InputPage() {
             style={{ maxWidth: "800px", width: "95%" }}
           >
             <h2 style={{ fontSize: "24px", marginBottom: "20px" }}>
-              🚀 Bạn có chắc chọn chọn dòng thông
+              🚀 Xác nhận thêm dòng vào bảng tính
             </h2>
+
+            {/* Thông tin 5 dòng đã chuyển gần nhất */}
+            <div
+              style={{
+                marginBottom: "20px",
+                padding: "15px",
+                background: "#e3f2fd",
+                borderRadius: "8px",
+                border: "1px solid #90caf9",
+                fontSize: "18px",
+              }}
+            >
+              <strong>Thông báo lần chuyển liền trước:</strong>
+              <div style={{ marginTop: "10px" }}>
+                {!lastBatch ? (
+                  "Chưa có lịch sử chuyển dòng trong phiên làm việc này."
+                ) : (
+                  <div style={{ maxHeight: "150px", overflowY: "auto" }}>
+                    <div style={{ marginBottom: "5px" }}>
+                      Ngày chuyển:{" "}
+                      <span style={{ color: "#1976d2", fontWeight: "bold" }}>
+                        {(() => {
+                          const dateStr = lastBatch.date;
+                          if (!dateStr || dateStr.includes("/")) return dateStr;
+                          const parts = dateStr.split("-");
+                          if (parts.length === 3) {
+                            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                          }
+                          return dateStr;
+                        })()}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                      {lastBatch.stts.map((stt, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            padding: "2px 8px",
+                            background: "white",
+                            border: "1px solid #90caf9",
+                            borderRadius: "4px",
+                            color: "#1976d2",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          STT: {stt}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             <div
               style={{
-                maxHeight: "200px",
+                maxHeight: "150px",
                 overflowY: "auto",
                 border: "1px solid #ddd",
                 padding: "10px",
@@ -1134,7 +1249,7 @@ function InputPage() {
                     key={idx}
                     style={{ padding: "5px", borderBottom: "1px solid #eee" }}
                   >
-                    Dòng {parseInt(idx) + 1} - Thông số Z:{" "}
+                    Dòng {parseInt(idx)} - Thông số Z:{" "}
                     <strong>{zValues[idx] || "N/A"}</strong>
                   </li>
                 ))}
@@ -1269,11 +1384,27 @@ function InputPage() {
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: "600px", width: "95%" }}
           >
-            <h3 style={{ fontSize: "24px", marginBottom: "20px" }}>Xóa dữ liệu Bảng thông</h3>
+            <h3 style={{ fontSize: "24px", marginBottom: "20px" }}>
+              Xóa dữ liệu Bảng thông
+            </h3>
 
             <div className="modal-body">
-              <div className="radio-group" style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-                <label style={{ fontSize: "22px", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div
+                className="radio-group"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "15px",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "22px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                  }}
+                >
                   <input
                     type="radio"
                     value="all"
@@ -1284,7 +1415,14 @@ function InputPage() {
                   Xóa tất cả dữ liệu
                 </label>
 
-                <label style={{ fontSize: "22px", display: "flex", alignItems: "center", gap: "12px" }}>
+                <label
+                  style={{
+                    fontSize: "22px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                  }}
+                >
                   <input
                     type="radio"
                     value="firstRow"
@@ -1295,7 +1433,14 @@ function InputPage() {
                   Xóa dòng cũ nhất
                 </label>
 
-                <label style={{ fontSize: "22px", display: "flex", alignItems: "center", gap: "12px" }}>
+                <label
+                  style={{
+                    fontSize: "22px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                  }}
+                >
                   <input
                     type="radio"
                     value="lastRow"
@@ -1306,7 +1451,14 @@ function InputPage() {
                   Xóa dòng mới nhất
                 </label>
 
-                <label style={{ fontSize: "22px", display: "flex", alignItems: "center", gap: "12px" }}>
+                <label
+                  style={{
+                    fontSize: "22px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                  }}
+                >
                   <input
                     type="radio"
                     value="rows"
@@ -1318,13 +1470,24 @@ function InputPage() {
                 </label>
 
                 {deleteOption === "rows" && (
-                  <div style={{ paddingLeft: "35px", display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div
+                    style={{
+                      paddingLeft: "35px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                    }}
+                  >
                     <input
                       type="number"
                       placeholder="Từ STT"
                       value={deleteRowFrom}
                       onChange={(e) => setDeleteRowFrom(e.target.value)}
-                      style={{ width: "100px", fontSize: "18px", padding: "5px" }}
+                      style={{
+                        width: "100px",
+                        fontSize: "18px",
+                        padding: "5px",
+                      }}
                     />
                     <span>đến</span>
                     <input
@@ -1332,16 +1495,44 @@ function InputPage() {
                       placeholder="Đến STT"
                       value={deleteRowTo}
                       onChange={(e) => setDeleteRowTo(e.target.value)}
-                      style={{ width: "100px", fontSize: "18px", padding: "5px" }}
+                      style={{
+                        width: "100px",
+                        fontSize: "18px",
+                        padding: "5px",
+                      }}
                     />
                   </div>
                 )}
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "20px" }}>
-              <button onClick={() => setShowDeleteModal(false)} style={{ padding: "8px 16px", fontSize: "18px" }}>Hủy</button>
-              <button onClick={handleDelete} style={{ padding: "8px 16px", fontSize: "18px", background: "#dc3545", color: "white", border: "none", borderRadius: "4px" }}>Đồng ý xóa</button>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+                marginTop: "20px",
+              }}
+            >
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                style={{ padding: "8px 16px", fontSize: "18px" }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleDelete}
+                style={{
+                  padding: "8px 16px",
+                  fontSize: "18px",
+                  background: "#dc3545",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                }}
+              >
+                Đồng ý xóa
+              </button>
             </div>
           </div>
         </div>
@@ -1351,11 +1542,38 @@ function InputPage() {
       {showDeleteAllModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ textAlign: "center" }}>
-            <h3 style={{ fontSize: "22px" }}>⚠️ Xác nhận xóa tất cả dữ liệu Bảng thông?</h3>
-            <p style={{ color: "red", fontSize: "18px" }}>Hành động này không thể hoàn tác.</p>
-            <div style={{ marginTop: "20px", display: "flex", justifyContent: "center", gap: "10px" }}>
-              <button onClick={() => setShowDeleteAllModal(false)} style={{ padding: "8px 16px", fontSize: "18px" }}>Hủy</button>
-              <button onClick={confirmDeleteAll} style={{ padding: "8px 16px", fontSize: "18px", background: "#dc3545", color: "white", border: "none" }}>Xác nhận Xóa Hết</button>
+            <h3 style={{ fontSize: "22px" }}>
+              ⚠️ Xác nhận xóa tất cả dữ liệu Bảng thông?
+            </h3>
+            <p style={{ color: "red", fontSize: "18px" }}>
+              Hành động này không thể hoàn tác.
+            </p>
+            <div
+              style={{
+                marginTop: "20px",
+                display: "flex",
+                justifyContent: "center",
+                gap: "10px",
+              }}
+            >
+              <button
+                onClick={() => setShowDeleteAllModal(false)}
+                style={{ padding: "8px 16px", fontSize: "18px" }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={confirmDeleteAll}
+                style={{
+                  padding: "8px 16px",
+                  fontSize: "18px",
+                  background: "#dc3545",
+                  color: "white",
+                  border: "none",
+                }}
+              >
+                Xác nhận Xóa Hết
+              </button>
             </div>
           </div>
         </div>
@@ -1364,10 +1582,35 @@ function InputPage() {
       {showDeleteFirstRowModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ textAlign: "center" }}>
-            <h3 style={{ fontSize: "22px" }}>Xác nhận xóa dòng cũ nhất (đầu tiên)?</h3>
-            <div style={{ marginTop: "20px", display: "flex", justifyContent: "center", gap: "10px" }}>
-              <button onClick={() => setShowDeleteFirstRowModal(false)} style={{ padding: "8px 16px", fontSize: "18px" }}>Hủy</button>
-              <button onClick={handleDeleteFirstRow} style={{ padding: "8px 16px", fontSize: "18px", background: "#dc3545", color: "white", border: "none" }}>Xác nhận Xóa</button>
+            <h3 style={{ fontSize: "22px" }}>
+              Xác nhận xóa dòng cũ nhất (đầu tiên)?
+            </h3>
+            <div
+              style={{
+                marginTop: "20px",
+                display: "flex",
+                justifyContent: "center",
+                gap: "10px",
+              }}
+            >
+              <button
+                onClick={() => setShowDeleteFirstRowModal(false)}
+                style={{ padding: "8px 16px", fontSize: "18px" }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleDeleteFirstRow}
+                style={{
+                  padding: "8px 16px",
+                  fontSize: "18px",
+                  background: "#dc3545",
+                  color: "white",
+                  border: "none",
+                }}
+              >
+                Xác nhận Xóa
+              </button>
             </div>
           </div>
         </div>
@@ -1376,10 +1619,35 @@ function InputPage() {
       {showDeleteLastRowModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ textAlign: "center" }}>
-            <h3 style={{ fontSize: "22px" }}>Xác nhận xóa dòng mới nhất (cuối cùng)?</h3>
-            <div style={{ marginTop: "20px", display: "flex", justifyContent: "center", gap: "10px" }}>
-              <button onClick={() => setShowDeleteLastRowModal(false)} style={{ padding: "8px 16px", fontSize: "18px" }}>Hủy</button>
-              <button onClick={handleDeleteLastRow} style={{ padding: "8px 16px", fontSize: "18px", background: "#dc3545", color: "white", border: "none" }}>Xác nhận Xóa</button>
+            <h3 style={{ fontSize: "22px" }}>
+              Xác nhận xóa dòng mới nhất (cuối cùng)?
+            </h3>
+            <div
+              style={{
+                marginTop: "20px",
+                display: "flex",
+                justifyContent: "center",
+                gap: "10px",
+              }}
+            >
+              <button
+                onClick={() => setShowDeleteLastRowModal(false)}
+                style={{ padding: "8px 16px", fontSize: "18px" }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleDeleteLastRow}
+                style={{
+                  padding: "8px 16px",
+                  fontSize: "18px",
+                  background: "#dc3545",
+                  color: "white",
+                  border: "none",
+                }}
+              >
+                Xác nhận Xóa
+              </button>
             </div>
           </div>
         </div>
@@ -1388,10 +1656,35 @@ function InputPage() {
       {showDeleteByRowsModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ textAlign: "center" }}>
-            <h3 style={{ fontSize: "22px" }}>Xác nhận xóa dữ liệu từ STT {deleteRowFrom} đến {deleteRowTo}?</h3>
-            <div style={{ marginTop: "20px", display: "flex", justifyContent: "center", gap: "10px" }}>
-              <button onClick={() => setShowDeleteByRowsModal(false)} style={{ padding: "8px 16px", fontSize: "18px" }}>Hủy</button>
-              <button onClick={confirmDeleteByRows} style={{ padding: "8px 16px", fontSize: "18px", background: "#dc3545", color: "white", border: "none" }}>Xác nhận Xóa</button>
+            <h3 style={{ fontSize: "22px" }}>
+              Xác nhận xóa dữ liệu từ STT {deleteRowFrom} đến {deleteRowTo}?
+            </h3>
+            <div
+              style={{
+                marginTop: "20px",
+                display: "flex",
+                justifyContent: "center",
+                gap: "10px",
+              }}
+            >
+              <button
+                onClick={() => setShowDeleteByRowsModal(false)}
+                style={{ padding: "8px 16px", fontSize: "18px" }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={confirmDeleteByRows}
+                style={{
+                  padding: "8px 16px",
+                  fontSize: "18px",
+                  background: "#dc3545",
+                  color: "white",
+                  border: "none",
+                }}
+              >
+                Xác nhận Xóa
+              </button>
             </div>
           </div>
         </div>

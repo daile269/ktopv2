@@ -64,8 +64,8 @@ app.get("/api/pages/:pageId", async (req, res) => {
       });
     }
 
-    // Pad arrays to 125 rows
-    const ROWS = 125;
+    // Pad arrays to 126 rows
+    const ROWS = 126;
     const aValues = [...page.aValues];
     const bValues = [...page.bValues];
     const zValues = page.zValues ? [...page.zValues] : [];
@@ -91,7 +91,7 @@ app.get("/api/pages/:pageId", async (req, res) => {
         sourceSTTValues,
         purpleRangeFrom: page.purpleRangeFrom || 0,
         purpleRangeTo: page.purpleRangeTo || 0,
-        keepLastNRows: page.keepLastNRows || 125,
+        keepLastNRows: page.keepLastNRows || 126,
         allQData: page.allQData,
       },
     });
@@ -176,7 +176,7 @@ app.post("/api/pages/:pageId", async (req, res) => {
         sourceSTTValues: trimmedSourceSTT,
         purpleRangeFrom: purpleRangeFrom || 0,
         purpleRangeTo: purpleRangeTo || 0,
-        keepLastNRows: keepLastNRows || 125,
+        keepLastNRows: keepLastNRows || 126,
         allQData,
         updatedAt: new Date(),
       },
