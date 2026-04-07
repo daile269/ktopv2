@@ -27,6 +27,10 @@ const pageSchema = new mongoose.Schema({
     type: [Boolean],
     default: []
   },
+  sourceSTTValues: {
+    type: [String],
+    default: []
+  },
   purpleRangeFrom: {
     type: Number,
     default: 0

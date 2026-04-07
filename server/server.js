@@ -71,12 +71,14 @@ app.get("/api/pages/:pageId", async (req, res) => {
     const zValues = page.zValues ? [...page.zValues] : [];
     const dateValues = [...page.dateValues];
     const deletedRows = [...page.deletedRows];
+    const sourceSTTValues = page.sourceSTTValues ? [...page.sourceSTTValues] : [];
 
     while (aValues.length < ROWS) aValues.push("");
     while (bValues.length < ROWS) bValues.push("");
     while (zValues.length < ROWS) zValues.push("");
     while (dateValues.length < ROWS) dateValues.push("");
     while (deletedRows.length < ROWS) deletedRows.push(false);
+    while (sourceSTTValues.length < ROWS) sourceSTTValues.push("");
 
     res.json({
       success: true,
@@ -86,6 +88,7 @@ app.get("/api/pages/:pageId", async (req, res) => {
         zValues,
         dateValues,
         deletedRows,
+        sourceSTTValues,
         purpleRangeFrom: page.purpleRangeFrom || 0,
         purpleRangeTo: page.purpleRangeTo || 0,
         keepLastNRows: page.keepLastNRows || 125,
@@ -116,6 +119,7 @@ app.post("/api/pages/:pageId", async (req, res) => {
       zValues,
       dateValues,
       deletedRows,
+      sourceSTTValues,
       purpleRangeFrom,
       purpleRangeTo,
       keepLastNRows,
@@ -130,7 +134,8 @@ app.post("/api/pages/:pageId", async (req, res) => {
     const bLen = bValues ? bValues.length : 0;
     const zLen = zValues ? zValues.length : 0;
     const dLen = dateValues ? dateValues.length : 0;
-    const maxLen = Math.max(aLen, bLen, zLen, dLen);
+    const sLen = sourceSTTValues ? sourceSTTValues.length : 0;
+    const maxLen = Math.max(aLen, bLen, zLen, dLen, sLen);
 
     for (let i = maxLen - 1; i >= 0; i--) {
       if (
@@ -155,6 +160,8 @@ app.post("/api/pages/:pageId", async (req, res) => {
       lastIndex >= 0 && dateValues ? dateValues.slice(0, lastIndex + 1) : [];
     const trimmedDeleted =
       lastIndex >= 0 && deletedRows ? deletedRows.slice(0, lastIndex + 1) : [];
+    const trimmedSourceSTT =
+      lastIndex >= 0 && sourceSTTValues ? sourceSTTValues.slice(0, lastIndex + 1) : [];
 
     // Update or create page
     const page = await Page.findOneAndUpdate(
@@ -166,6 +173,7 @@ app.post("/api/pages/:pageId", async (req, res) => {
         zValues: trimmedZ,
         dateValues: trimmedDates,
         deletedRows: trimmedDeleted,
+        sourceSTTValues: trimmedSourceSTT,
         purpleRangeFrom: purpleRangeFrom || 0,
         purpleRangeTo: purpleRangeTo || 0,
         keepLastNRows: keepLastNRows || 125,

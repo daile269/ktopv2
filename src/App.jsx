@@ -16,6 +16,7 @@ function App() {
       .map(() => Array(125).fill("")),
   );
   const [dateValues, setDateValues] = useState(Array(125).fill(""));
+  const [sourceSTTValues, setSourceSTTValues] = useState(Array(125).fill(""));
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -109,6 +110,7 @@ function App() {
           setBValues(result.data.bValues || Array(ROWS).fill(""));
           setZValues(result.data.zValues || Array(ROWS).fill(""));
           setDateValues(result.data.dateValues || Array(ROWS).fill(""));
+          setSourceSTTValues(result.data.sourceSTTValues || Array(ROWS).fill(""));
           setDeletedRows(result.data.deletedRows || Array(ROWS).fill(false));
 
           const q1Result = await loadPageData("q1");
@@ -614,6 +616,7 @@ function App() {
         bValues,
         dateValues,
         deletedRows,
+        sourceSTTValues,
         purpleRangeFrom,
         purpleRangeTo,
         keepLastNRows,
@@ -632,8 +635,10 @@ function App() {
                   qId,
                   qResult.data.aValues,
                   qResult.data.bValues,
+                  qResult.data.zValues || Array(ROWS).fill(""),
                   dateValues,
                   deletedRows,
+                  sourceSTTValues,
                   purpleRangeFrom, // ⭐ Sync purple range
                   purpleRangeTo, // ⭐ Sync purple range
                   keepLastNRows,
@@ -666,6 +671,7 @@ function App() {
       zValues,
       dateValues,
       deletedRows,
+      sourceSTTValues,
       purpleRangeFrom,
       purpleRangeTo,
       keepLastNRows,
@@ -689,6 +695,7 @@ function App() {
                 qResult.data.zValues || Array(ROWS).fill(""),
                 dateValues,
                 deletedRows,
+                sourceSTTValues,
                 purpleRangeFrom, // ⭐ Sync purple range từ Q hiện tại
                 purpleRangeTo, // ⭐ Sync purple range từ Q hiện tại
                 keepLastNRows,
@@ -1562,17 +1569,21 @@ function App() {
               style={{
                 fontSize: "20px",
                 fontWeight: "bold",
-                backgroundColor: import.meta.env.VITE_SITE_ID === "site_a" ? "#007bff" : "#6c757d",
+                backgroundColor:
+                  import.meta.env.VITE_SITE_ID === "site_a"
+                    ? "#007bff"
+                    : "#6c757d",
                 color: "white",
                 cursor: "default",
                 opacity: 1,
                 border: "none",
                 padding: "6px 12px",
                 borderRadius: "8px",
-                marginRight: "10px"
+                marginRight: "10px",
               }}
             >
-              Bảng tính - APP: {import.meta.env.VITE_SITE_ID === "site_a" ? "A" : "B"}
+              Bảng tính - APP:{" "}
+              {import.meta.env.VITE_SITE_ID === "site_a" ? "A" : "B"}
             </button>
             <button
               onClick={() => setShowDeleteModal(true)}
@@ -1592,7 +1603,7 @@ function App() {
               onClick={handleInputAllQ}
               className="toolbar-button primary"
             >
-              📥 Bảng thông
+              📥 Về Bảng thông
             </button>
           </div>
 
@@ -1871,6 +1882,9 @@ function App() {
                         <th colSpan="4" className="group-header">
                           Q{pageId.replace("q", "")}
                         </th>
+                        <th colSpan="3" className="group-header">
+                          Thông tin từ Bảng thông
+                        </th>
                         {tableIndex === 0 && (
                           <>
                             <th colSpan="1" className="group-header">
@@ -1903,6 +1917,12 @@ function App() {
                           style={{ minWidth: "300px", width: "300px" }}
                         >
                           Ngày
+                        </th>
+                        <th
+                          className="col-header fixed"
+                          style={{ minWidth: "150px", width: "150px" }}
+                        >
+                          Số dòng thông chọn
                         </th>
                         {tableIndex === 0 && (
                           <>
@@ -1961,6 +1981,7 @@ function App() {
                                             newZValues,
                                             dateValues,
                                             result.data.deletedRows || [],
+                                            sourceSTTValues,
                                             purpleRangeFrom,
                                             purpleRangeTo,
                                             keepLastNRows,
@@ -2009,6 +2030,7 @@ function App() {
                                             result.data.bValues,
                                             newDateValues,
                                             result.data.deletedRows || [],
+                                            sourceSTTValues,
                                             purpleRangeFrom,
                                             purpleRangeTo,
                                             keepLastNRows,
@@ -2024,6 +2046,26 @@ function App() {
                                     background: "transparent",
                                     fontSize: "22px",
                                     padding: "4px",
+                                  }}
+                                />
+                              </td>
+                              <td
+                                className="data-cell fixed"
+                                style={{ minWidth: "150px", width: "150px" }}
+                              >
+                                <input
+                                  type="text"
+                                  className="grid-input"
+                                  value={sourceSTTValues[rowIndex] || ""}
+                                  readOnly={true}
+                                  style={{
+                                    width: "100%",
+                                    border: "none",
+                                    background: "transparent",
+                                    fontSize: "22px",
+                                    textAlign: "center",
+                                    fontWeight: "bold",
+                                    color: "#6f42c1",
                                   }}
                                 />
                               </td>

@@ -329,6 +329,7 @@ function InputPage() {
       zValues,
       dateValues,
       newDeletedRows,
+      null, // sourceSTTValues
       purpleRangeFrom,
       purpleRangeTo,
       n,
@@ -348,6 +349,7 @@ function InputPage() {
       zValues,
       dateValues,
       deletedRows,
+      null, // sourceSTTValues
       purpleRangeFrom,
       purpleRangeTo,
       keepLastNRows,
@@ -454,6 +456,7 @@ function InputPage() {
       zValues,
       dateValues,
       newDeletedRows,
+      null, // sourceSTTValues
       purpleRangeFrom,
       purpleRangeTo,
       keepLastNRows,
@@ -501,6 +504,7 @@ function InputPage() {
       zValues,
       dateValues,
       newDeletedRows,
+      null, // sourceSTTValues
       purpleRangeFrom,
       purpleRangeTo,
       keepLastNRows,
@@ -522,6 +526,7 @@ function InputPage() {
       Array(dateValues.length).fill(""),
       Array(dateValues.length).fill(""),
       newDeletedRows,
+      null, // sourceSTTValues
       purpleRangeFrom,
       purpleRangeTo,
       keepLastNRows,
@@ -570,6 +575,7 @@ function InputPage() {
       zValues,
       dateValues,
       newDeletedRows,
+      null, // sourceSTTValues
       purpleRangeFrom,
       purpleRangeTo,
       keepLastNRows,
@@ -615,12 +621,20 @@ function InputPage() {
     try {
       for (let i = 1; i <= 10; i++) {
         const qId = `q${i}`;
+        // Get display row numbers for selected indices
+        // First, create a map of rowIndex to display order
+        const rowToSTT = {};
+        sortedIndices.forEach((rIdx, sIdx) => {
+          rowToSTT[rIdx] = sIdx + 1;
+        });
+
         const currentData = await loadPageData(qId);
         let activeA = [],
           activeB = [],
           activeZ = [],
           activeD = [],
-          activeDel = [];
+          activeDel = [],
+          activeSourceSTT = []; // New array for source row numbers
 
         if (currentData.success && currentData.data) {
           activeA = currentData.data.aValues || [];
@@ -628,12 +642,14 @@ function InputPage() {
           activeZ = currentData.data.zValues || [];
           activeD = currentData.data.dateValues || [];
           activeDel = currentData.data.deletedRows || [];
+          activeSourceSTT = currentData.data.sourceSTTValues || [];
         } else {
           activeA = Array(125).fill("");
           activeB = Array(125).fill("");
           activeZ = Array(125).fill("");
           activeD = Array(125).fill("");
           activeDel = Array(125).fill(true);
+          activeSourceSTT = Array(125).fill("");
         }
 
         // Append selected rows
@@ -643,6 +659,7 @@ function InputPage() {
           activeZ.push(zValues[idx]);
           activeD.push(transferDate);
           activeDel.push(false);
+          activeSourceSTT.push(String(rowToSTT[idx]).padStart(3, "0"));
         });
 
         // Keep last 125
@@ -652,6 +669,7 @@ function InputPage() {
           activeZ = activeZ.slice(-125);
           activeD = activeD.slice(-125);
           activeDel = activeDel.slice(-125);
+          activeSourceSTT = activeSourceSTT.slice(-125);
         } else {
           // Pad back to 125 if needed
           while (activeA.length < 125) {
@@ -660,6 +678,7 @@ function InputPage() {
             activeZ.unshift("");
             activeD.unshift("");
             activeDel.unshift(true);
+            activeSourceSTT.unshift("");
           }
         }
 
@@ -670,6 +689,7 @@ function InputPage() {
           activeZ,
           activeD,
           activeDel,
+          activeSourceSTT, // Passed here
           purpleRangeFrom,
           purpleRangeTo,
           125,
@@ -953,7 +973,7 @@ function InputPage() {
                   border: "none",
                 }}
               >
-                🔍 Ok toán
+                🔍 Ok toán về bảng tính
               </button>
             </div>
           </div>

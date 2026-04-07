@@ -35,6 +35,7 @@ export const savePageData = async (
   zValues,
   dateValues,
   deletedRows = [],
+  sourceSTTValues = [],
   purpleRangeFrom = 0,
   purpleRangeTo = 0,
   keepLastNRows = 125,
@@ -54,6 +55,7 @@ export const savePageData = async (
         zValues,
         dateValues,
         deletedRows,
+        sourceSTTValues,
         purpleRangeFrom,
         purpleRangeTo,
         keepLastNRows,
@@ -103,6 +105,9 @@ export const loadPageData = async (pageId) => {
       const deleted = Array.isArray(data.deletedRows)
         ? [...data.deletedRows]
         : [];
+      const sourceSTTs = Array.isArray(data.sourceSTTValues)
+        ? [...data.sourceSTTValues]
+        : [];
 
       // Pad với empty strings/false
       while (a.length < ROWS) a.push("");
@@ -110,6 +115,7 @@ export const loadPageData = async (pageId) => {
       while (z.length < ROWS) z.push("");
       while (dates.length < ROWS) dates.push("");
       while (deleted.length < ROWS) deleted.push(false);
+      while (sourceSTTs.length < ROWS) sourceSTTs.push("");
 
       return {
         success: true,
@@ -119,6 +125,7 @@ export const loadPageData = async (pageId) => {
           zValues: z,
           dateValues: dates,
           deletedRows: deleted,
+          sourceSTTValues: sourceSTTs,
           purpleRangeFrom: data.purpleRangeFrom || 0,
           purpleRangeTo: data.purpleRangeTo || 0,
           keepLastNRows: data.keepLastNRows || 125,
