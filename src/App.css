@@ -358,9 +358,9 @@ body {
 }
 
 .data-cell.date-col {
-  width: 300px !important; /* Width cố định cho Ngày */
-  min-width: 300px !important;
-  max-width: 350px !important;
+  width: 190px !important; /* Width cố định cho Ngày */
+  min-width: 190px !important;
+  max-width: 210px !important;
   text-align: left;
   padding-left: 12px;
   font-size: 30px;
@@ -578,11 +578,11 @@ body {
 
 .table-section {
   flex: 0 0 auto;
-  width: 2340px; /* Adjusted to match sum of columns */
+  width: 1870px; /* Adjusted to match sum of columns */
 }
 
 .table-section.first-table {
-  width: 2500px; /* Adjusted to match sum of columns (includes A, B) */
+  width: 2070px; /* Adjusted to match sum of columns (includes A, B) */
 }
 
 .table-title {

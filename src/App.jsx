@@ -110,7 +110,9 @@ function App() {
           setBValues(result.data.bValues || Array(ROWS).fill(""));
           setZValues(result.data.zValues || Array(ROWS).fill(""));
           setDateValues(result.data.dateValues || Array(ROWS).fill(""));
-          setSourceSTTValues(result.data.sourceSTTValues || Array(ROWS).fill(""));
+          setSourceSTTValues(
+            result.data.sourceSTTValues || Array(ROWS).fill(""),
+          );
           setDeletedRows(result.data.deletedRows || Array(ROWS).fill(false));
 
           const q1Result = await loadPageData("q1");
@@ -1579,7 +1581,7 @@ function App() {
               className="toolbar-button"
               disabled
               style={{
-                fontSize: "20px",
+                fontSize: "18px",
                 fontWeight: "bold",
                 backgroundColor:
                   import.meta.env.VITE_SITE_ID === "site_a"
@@ -1658,7 +1660,7 @@ function App() {
               }}
               className="toolbar-button"
               style={{
-                fontSize: "20px",
+                fontSize: "18px",
                 padding: "6px 12px",
                 backgroundColor: "#6c757d",
                 color: "white",
@@ -1710,7 +1712,7 @@ function App() {
               }}
               className="toolbar-button"
               style={{
-                fontSize: "20px",
+                fontSize: "18px",
                 padding: "6px 12px",
                 backgroundColor: "#6c757d",
                 color: "white",
@@ -1889,13 +1891,29 @@ function App() {
               >
                 {tableData.length > 0 ? (
                   <table className="data-grid">
+                    <colgroup>
+                      <col style={{ width: "80px" }} /> {/* STT */}
+                      <col style={{ width: "150px" }} /> {/* Z */}
+                      <col style={{ width: "190px" }} /> {/* Ngày */}
+                      <col style={{ width: "150px" }} /> {/* STT D.T */}
+                      {tableIndex === 0 && (
+                        <>
+                          <col style={{ width: "100px" }} /> {/* A */}
+                          <col style={{ width: "100px" }} /> {/* B */}
+                        </>
+                      )}
+                      <col style={{ width: "100px" }} /> {/* T */}
+                      {[...Array(10)].map((_, i) => (
+                        <col key={i} style={{ width: "120px" }} />
+                      ))}
+                    </colgroup>
                     <thead>
                       <tr>
-                        <th colSpan="4" className="group-header">
+                        <th colSpan="3" className="group-header">
                           Q{pageId.replace("q", "")}
                         </th>
                         <th colSpan="1" className="group-header">
-                          Thông tin từ Bảng thông
+                          TT từ BT
                         </th>
                         {tableIndex === 0 && (
                           <>
@@ -1919,14 +1937,13 @@ function App() {
                         <th className="col-header fixed">STT</th>
                         <th
                           className="col-header fixed"
-                          style={{ minWidth: "530px", width: "530px" }}
+                          style={{ minWidth: "150px", width: "150px" }}
                         >
                           Z
                         </th>
                         <th
                           className="col-header fixed date-col-header"
-                          colSpan="2"
-                          style={{ minWidth: "300px", width: "300px" }}
+                          style={{ minWidth: "190px", width: "190px" }}
                         >
                           Ngày
                         </th>
@@ -1934,7 +1951,7 @@ function App() {
                           className="col-header fixed"
                           style={{ minWidth: "150px", width: "150px" }}
                         >
-                          Số dòng thông chọn
+                          STT D.T
                         </th>
                         {tableIndex === 0 && (
                           <>
@@ -1965,7 +1982,7 @@ function App() {
                               </td>
                               <td
                                 className="data-cell fixed"
-                                style={{ minWidth: "530px", width: "530px" }}
+                                style={{ minWidth: "150px", width: "150px" }}
                               >
                                 <input
                                   type="text"
@@ -2014,10 +2031,7 @@ function App() {
                                   }}
                                 />
                               </td>
-                              <td
-                                className="data-cell fixed date-col"
-                                colSpan="2"
-                              >
+                              <td className="data-cell fixed date-col">
                                 <input
                                   type="date"
                                   className="date-input"
@@ -2040,7 +2054,8 @@ function App() {
                                             qId,
                                             result.data.aValues,
                                             result.data.bValues,
-                                            result.data.zValues || Array(ROWS).fill(""),
+                                            result.data.zValues ||
+                                              Array(ROWS).fill(""),
                                             newDateValues,
                                             result.data.deletedRows || [],
                                             sourceSTTValues,
@@ -2430,7 +2445,7 @@ function App() {
               <div className="form-group">
                 <label
                   style={{
-                    fontSize: "20px",
+                    fontSize: "18px",
                     fontWeight: "bold",
                     marginBottom: "8px",
                     display: "block",
@@ -2455,7 +2470,7 @@ function App() {
               <div className="form-group" style={{ marginTop: "20px" }}>
                 <label
                   style={{
-                    fontSize: "20px",
+                    fontSize: "18px",
                     fontWeight: "bold",
                     marginBottom: "8px",
                     display: "block",
@@ -2481,7 +2496,7 @@ function App() {
               <div className="form-group" style={{ marginTop: "20px" }}>
                 <label
                   style={{
-                    fontSize: "20px",
+                    fontSize: "18px",
                     fontWeight: "bold",
                     marginBottom: "8px",
                     display: "block",
@@ -2507,7 +2522,7 @@ function App() {
               <div className="form-group" style={{ marginTop: "20px" }}>
                 <label
                   style={{
-                    fontSize: "20px",
+                    fontSize: "18px",
                     fontWeight: "bold",
                     marginBottom: "8px",
                     display: "block",

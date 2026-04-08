@@ -21,8 +21,8 @@ const TaskRow = memo(
         <td
           style={{
             textAlign: "center",
-            width: "80px !important",
-            minWidth: "80px !important",
+            width: "60px !important",
+            minWidth: "60px !important",
             padding: 0,
           }}
         >
@@ -40,7 +40,7 @@ const TaskRow = memo(
         <td style={{ textAlign: "center", fontSize: "20px" }}>
           {String(displayRowNumber).padStart(3, "0")}
         </td>
-        <td style={{ width: "250px", minWidth: "250px" }}>
+        <td style={{ width: "200px", minWidth: "200px" }}>
           <input
             type="text"
             className="cell-input"
@@ -52,8 +52,8 @@ const TaskRow = memo(
               textAlign: "center",
               width: "100%",
               padding: "8px",
-              fontSize: "20px",
-              fontWeight: "bold",
+              fontSize: "12px !important",
+              fontWeight: "normal",
             }}
           />
         </td>
@@ -166,6 +166,7 @@ function InputPage() {
   const [showDeleteFirstRowModal, setShowDeleteFirstRowModal] = useState(false);
   const [showDeleteLastRowModal, setShowDeleteLastRowModal] = useState(false);
   const [showDeleteByRowsModal, setShowDeleteByRowsModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Load data từ master_draft
   useEffect(() => {
@@ -762,11 +763,11 @@ function InputPage() {
       }
 
       setSaveStatus("✅ Đã thêm mới vào bảng tính!");
-      alert(`✅ Đã thêm ${selectedIndices.length} dòng thành công!`);
 
       // LƯU LẠI LỊCH SỬ LẦN VỪA CHUYỂN
       const batchInfo = {
         stts: selectedIndices.map((idx) => String(idx).padStart(3, "0")),
+        zValues: selectedIndices.map((idx) => zValues[idx] || ""),
         date: transferDate,
       };
       localStorage.setItem("lastBatchInfo", JSON.stringify(batchInfo));
@@ -774,6 +775,7 @@ function InputPage() {
 
       setSelectedRows({});
       setShowAddModal(false);
+      setShowSuccessModal(true);
     } catch (err) {
       console.error("Lỗi trong quá trình thêm:", err);
       alert("⚠️ Lỗi trong quá trình thêm!");
@@ -1034,21 +1036,16 @@ function InputPage() {
                 ➕ Chọn dòng thông và nhập ngày tháng năm
               </button>
               {saveStatus && (
-                <span style={{ color: "#28a745" }}>{saveStatus}</span>
+                <span
+                  style={{
+                    color: "#28a745",
+                    fontSize: "18px",
+                    marginLeft: "10px",
+                  }}
+                >
+                  {saveStatus}
+                </span>
               )}
-              <button
-                className="toolbar-btn"
-                onClick={() => (window.location.href = "/q1")}
-                style={{
-                  marginLeft: "10px",
-                  background: "#28a745",
-                  color: "white",
-                  fontSize: "20px",
-                  border: "none",
-                }}
-              >
-                🔍 Ok toán về bảng tính
-              </button>
             </div>
           </div>
 
@@ -1067,17 +1064,17 @@ function InputPage() {
                     rowSpan="2"
                     style={{
                       padding: 0,
-                      width: "80px !important",
-                      minWidth: "80px !important",
-                      fontSize: "22px",
+                      width: "60px !important",
+                      minWidth: "60px !important",
+                      fontSize: "14px",
                     }}
                   >
-                    Chọn
+                    Ch
                   </th>
                   <th rowSpan="2" style={{ padding: "8px 4px" }}>
                     STT
                   </th>
-                  <th rowSpan="2" style={{ minWidth: "250px", width: "250px" }}>
+                  <th rowSpan="2" style={{ minWidth: "200px", width: "200px" }}>
                     Z
                   </th>
                   {/* Ngày đã bị loại bỏ */}
@@ -1107,12 +1104,12 @@ function InputPage() {
                     rowSpan="2"
                     style={{
                       padding: 0,
-                      width: "80px !important",
-                      minWidth: "80px !important",
-                      fontSize: "22px",
+                      width: "60px !important",
+                      minWidth: "60px !important",
+                      fontSize: "14px",
                     }}
                   >
-                    Chọn
+                    Ch
                   </th>
                 </tr>
                 <tr>
@@ -1175,8 +1172,14 @@ function InputPage() {
             className="modal-content"
             style={{ maxWidth: "800px", width: "95%" }}
           >
-            <h2 style={{ fontSize: "24px", marginBottom: "20px" }}>
-              🚀 Xác nhận thêm dòng vào bảng tính
+            <h2
+              style={{
+                fontSize: "40px",
+                marginBottom: "20px",
+                fontWeight: "bold",
+              }}
+            >
+              🚀 Dấu sao
             </h2>
 
             {/* Thông tin 5 dòng đã chuyển gần nhất */}
@@ -1187,7 +1190,7 @@ function InputPage() {
                 background: "#e3f2fd",
                 borderRadius: "8px",
                 border: "1px solid #90caf9",
-                fontSize: "18px",
+                fontSize: "22px",
               }}
             >
               <strong>Thông báo lần chuyển liền trước:</strong>
@@ -1210,20 +1213,25 @@ function InputPage() {
                         })()}
                       </span>
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                    <div
+                      style={{ marginTop: "10px" }}
+                    >
                       {lastBatch.stts.map((stt, idx) => (
                         <div
                           key={idx}
                           style={{
-                            padding: "2px 8px",
-                            background: "white",
-                            border: "1px solid #90caf9",
-                            borderRadius: "4px",
+                            padding: "4px 0",
+                            borderBottom: "1px dashed #90caf9",
                             color: "#1976d2",
                             fontWeight: "bold",
+                            display: "flex",
+                            justifyContent: "space-between"
                           }}
                         >
-                          STT: {stt}
+                          <span>STT: {stt}</span>
+                          <span style={{ color: "#e91e63" }}>
+                            Z: {lastBatch.zValues ? lastBatch.zValues[idx] : "N/A"}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -1239,7 +1247,7 @@ function InputPage() {
                 border: "1px solid #ddd",
                 padding: "10px",
                 marginBottom: "20px",
-                fontSize: "20px",
+                fontSize: "22px",
               }}
             >
               <p>Danh sách các dòng đã chọn:</p>
@@ -1331,6 +1339,74 @@ function InputPage() {
                 }}
               >
                 {isAddingToCalc ? "⌛ Đang thêm..." : "✅ OK chọn"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showSuccessModal && (
+        <div className="modal-overlay">
+          <div
+            className="modal-content"
+            style={{
+              maxWidth: "500px",
+              width: "90%",
+              textAlign: "center",
+              padding: "40px 20px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "60px",
+                color: "#28a745",
+                marginBottom: "20px",
+              }}
+            >
+              ✅
+            </div>
+            <h2 style={{ fontSize: "28px", marginBottom: "20px" }}>
+              Thành công!
+            </h2>
+            <p style={{ fontSize: "20px", marginBottom: "30px" }}>
+              Đã thêm dữ liệu vào bảng tính thành công.
+            </p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "15px",
+                alignItems: "center",
+              }}
+            >
+              <button
+                onClick={() => (window.location.href = "/q1")}
+                style={{
+                  width: "100%",
+                  padding: "15px",
+                  borderRadius: "10px",
+                  background: "#28a745",
+                  color: "white",
+                  fontSize: "22px",
+                  fontWeight: "bold",
+                  border: "none",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 6px rgba(40, 167, 69, 0.2)",
+                }}
+              >
+                🔍 Ok toán về bảng tính
+              </button>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#666",
+                  fontSize: "18px",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Ở lại trang này
               </button>
             </div>
           </div>
