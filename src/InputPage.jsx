@@ -212,6 +212,35 @@ function InputPage() {
     loadData();
   }, [ROWS]);
 
+  // Helper để format STT thành dãy (VD: 049-051, 055)
+  const formatSttRanges = (sttArray) => {
+    if (!sttArray || sttArray.length === 0) return "";
+    const sorted = sttArray.map(Number).sort((a, b) => a - b);
+    const ranges = [];
+    let start = sorted[0];
+    let end = sorted[0];
+
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i] === end + 1) {
+        end = sorted[i];
+      } else {
+        ranges.push(
+          start === end
+            ? String(start).padStart(3, "0")
+            : `${String(start).padStart(3, "0")}-${String(end).padStart(3, "0")}`,
+        );
+        start = sorted[i];
+        end = sorted[i];
+      }
+    }
+    ranges.push(
+      start === end
+        ? String(start).padStart(3, "0")
+        : `${String(start).padStart(3, "0")}-${String(end).padStart(3, "0")}`,
+    );
+    return "STT: " + ranges.join(", ");
+  };
+
   // Auto scroll to target row on load
   useEffect(() => {
     if (!isLoading && dateValues.length > 0) {
@@ -997,6 +1026,10 @@ function InputPage() {
                 gap: "10px",
                 alignItems: "center",
                 justifyContent: "center",
+                border: "3px solid #007bff",
+                padding: "10px 15px",
+                borderRadius: "8px",
+                backgroundColor: "#e7f3ff",
               }}
             >
               <button
@@ -1034,6 +1067,18 @@ function InputPage() {
                 }}
               >
                 ➕ Chọn dòng thông và nhập ngày tháng năm
+              </button>
+              <button
+                className="toolbar-btn"
+                onClick={() => (window.location.href = "/q1")}
+                style={{
+                  fontSize: "20px",
+                  background: "#28a745",
+                  color: "white",
+                  border: "none",
+                }}
+              >
+                🔍 Về bảng tính
               </button>
               {saveStatus && (
                 <span
@@ -1179,7 +1224,7 @@ function InputPage() {
                 fontWeight: "bold",
               }}
             >
-              🚀 Dấu sao
+              🚀 Thông báo
             </h2>
 
             {/* Thông tin 5 dòng đã chuyển gần nhất */}
@@ -1193,7 +1238,7 @@ function InputPage() {
                 fontSize: "22px",
               }}
             >
-              <strong>Thông báo lần chuyển liền trước:</strong>
+              <strong>Lần chọn trước:</strong>
               <div style={{ marginTop: "10px" }}>
                 {!lastBatch ? (
                   "Chưa có lịch sử chuyển dòng trong phiên làm việc này."
@@ -1214,26 +1259,13 @@ function InputPage() {
                       </span>
                     </div>
                     <div
-                      style={{ marginTop: "10px" }}
+                      style={{
+                        marginTop: "10px",
+                        color: "#1976d2",
+                        fontWeight: "bold",
+                      }}
                     >
-                      {lastBatch.stts.map((stt, idx) => (
-                        <div
-                          key={idx}
-                          style={{
-                            padding: "4px 0",
-                            borderBottom: "1px dashed #90caf9",
-                            color: "#1976d2",
-                            fontWeight: "bold",
-                            display: "flex",
-                            justifyContent: "space-between"
-                          }}
-                        >
-                          <span>STT: {stt}</span>
-                          <span style={{ color: "#e91e63" }}>
-                            Z: {lastBatch.zValues ? lastBatch.zValues[idx] : "N/A"}
-                          </span>
-                        </div>
-                      ))}
+                      {formatSttRanges(lastBatch.stts)}
                     </div>
                   </div>
                 )}
@@ -1250,21 +1282,12 @@ function InputPage() {
                 fontSize: "22px",
               }}
             >
-              <p>Danh sách các dòng đã chọn:</p>
-              <ul style={{ listStyle: "none", padding: 0 }}>
-                {Object.keys(selectedRows).map((idx) => (
-                  <li
-                    key={idx}
-                    style={{ padding: "5px", borderBottom: "1px solid #eee" }}
-                  >
-                    Dòng {parseInt(idx)} - Thông số Z:{" "}
-                    <strong>{zValues[idx] || "N/A"}</strong>
-                  </li>
-                ))}
-                {Object.keys(selectedRows).length === 0 && (
-                  <li style={{ color: "red" }}>Chưa chọn dòng nào!</li>
-                )}
-              </ul>
+              <p>Lần chọn mới:</p>
+              <div style={{ fontWeight: "bold", color: "#6f42c1" }}>
+                {Object.keys(selectedRows).length > 0
+                  ? formatSttRanges(Object.keys(selectedRows))
+                  : "Chưa chọn dòng nào!"}
+              </div>
             </div>
 
             <div
@@ -1307,7 +1330,7 @@ function InputPage() {
               style={{
                 display: "flex",
                 gap: "10px",
-                justifyContent: "flex-end",
+                justifyContent: "space-between",
               }}
             >
               <button
@@ -1317,7 +1340,7 @@ function InputPage() {
                   borderRadius: "8px",
                   border: "1px solid #ccc",
                   background: "white",
-                  fontSize: "20px",
+                  fontSize: "22px",
                 }}
               >
                 Chọn lại
@@ -1357,24 +1380,23 @@ function InputPage() {
           >
             <div
               style={{
-                fontSize: "60px",
-                color: "#28a745",
+                fontSize: "80px",
                 marginBottom: "20px",
               }}
             >
               ✅
             </div>
-            <h2 style={{ fontSize: "28px", marginBottom: "20px" }}>
-              Thành công!
+            <h2 style={{ fontSize: "40px", fontWeight: "bold", marginBottom: "20px", color: "#000" }}>
+              THÀNH CÔNG!
             </h2>
-            <p style={{ fontSize: "20px", marginBottom: "30px" }}>
+            <p style={{ fontSize: "28px", fontWeight: "bold", marginBottom: "40px", color: "#000" }}>
               Đã thêm dữ liệu vào bảng tính thành công.
             </p>
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "15px",
+                gap: "20px",
                 alignItems: "center",
               }}
             >
@@ -1382,26 +1404,27 @@ function InputPage() {
                 onClick={() => (window.location.href = "/q1")}
                 style={{
                   width: "100%",
-                  padding: "15px",
-                  borderRadius: "10px",
-                  background: "#28a745",
+                  padding: "20px",
+                  borderRadius: "15px",
+                  background: "#000",
                   color: "white",
-                  fontSize: "22px",
+                  fontSize: "32px",
                   fontWeight: "bold",
                   border: "none",
                   cursor: "pointer",
-                  boxShadow: "0 4px 6px rgba(40, 167, 69, 0.2)",
+                  boxShadow: "0 6px 12px rgba(0, 0, 0, 0.4)",
                 }}
               >
-                🔍 Ok toán về bảng tính
+                🔍 OK TOÁN VỀ BẢNG TÍNH
               </button>
               <button
                 onClick={() => setShowSuccessModal(false)}
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#666",
-                  fontSize: "18px",
+                  color: "#333",
+                  fontSize: "22px",
+                  fontWeight: "bold",
                   cursor: "pointer",
                   textDecoration: "underline",
                 }}

@@ -1612,13 +1612,6 @@ function App() {
             <button onClick={handleSaveData} className="toolbar-button success">
               💾 Lưu dữ liệu
             </button>
-
-            <button
-              onClick={handleInputAllQ}
-              className="toolbar-button primary"
-            >
-              📥 Về Bảng thông
-            </button>
           </div>
 
           {/* Báo màu Control */}
@@ -1723,6 +1716,30 @@ function App() {
               title="Cài đặt số dòng tồn tại"
             >
               ⚙️
+            </button>
+          </div>
+
+          <div
+            className="toolbar-group"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              border: "3px solid #007bff",
+              borderRadius: "8px",
+              padding: "8px 12px",
+              backgroundColor: "#e7f3ff",
+            }}
+          >
+            <button
+              onClick={handleInputAllQ}
+              className="toolbar-button primary"
+              style={{
+                fontSize: "25px",
+                padding: "8px 16px",
+                borderRadius: "8px",
+              }}
+            >
+              📥 Về Bảng thông
             </button>
           </div>
 
@@ -1929,8 +1946,8 @@ function App() {
                           Thông
                         </th>
                         <th colSpan="10" className="group-header">
-                          Tham số: áp suất nước-nhiệt độ- độ ph- tỷ phần sinh
-                          hóa- mùa- f sinh học
+                          Q{pageId.replace("q", "")}- Tham số: áp suất nước-nhiệt
+                          độ- độ ph- tỷ phần sinh hóa- mùa- f sinh học
                         </th>
                       </tr>
                       <tr>
