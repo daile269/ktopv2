@@ -1929,6 +1929,26 @@ function App() {
             >
               Xem
             </button>
+            <button
+              className="toolbar-button"
+              style={{
+                fontSize: "18px",
+                padding: "8px 16px",
+                backgroundColor: "#17a2b8",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "default",
+                marginLeft: "8px",
+                fontWeight: "bold",
+              }}
+              title="Tổng số dòng đã được tính toán (không bao gồm dòng tương lai)"
+            >
+              📊 Dòng đã toán:{" "}
+              {allTableData[0]
+                ? allTableData[0].filter((_, i) => !deletedRows[i]).length
+                : 0}
+            </button>
           </div>
         </div>
       </div>
