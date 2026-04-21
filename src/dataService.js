@@ -40,6 +40,7 @@ export const savePageData = async (
   purpleRangeTo = 0,
   keepLastNRows = 126,
   allQData = undefined,
+  pageLabel = "",
 ) => {
   try {
     const realId = getRealPageId(pageId);
@@ -60,13 +61,20 @@ export const savePageData = async (
         purpleRangeTo,
         keepLastNRows,
         allQData,
+        pageLabel,
       }),
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (e) {
+      console.warn("⚠️ Response is not JSON:", text);
+    }
 
     if (!response.ok) {
-      throw new Error(data.error || "Failed to save data");
+      throw new Error(data.error || `Lỗi server (${response.status}): ${text.slice(0, 50)}`);
     }
 
     return { success: true };
@@ -85,10 +93,16 @@ export const loadPageData = async (pageId) => {
     const realId = getRealPageId(pageId);
     console.log(`📖 Loading data for REAL ID: ${realId}`);
     const response = await fetch(`${API_URL}/api/pages/${realId}`);
-    const result = await response.json();
+    const text = await response.text();
+    let result = {};
+    try {
+      result = text ? JSON.parse(text) : {};
+    } catch (e) {
+      console.warn("⚠️ Response is not JSON:", text);
+    }
 
     if (!response.ok) {
-      throw new Error(result.error || "Failed to load data");
+      throw new Error(result.error || `Lỗi server (${response.status})`);
     }
 
     if (result.success && result.data) {
@@ -130,6 +144,7 @@ export const loadPageData = async (pageId) => {
           purpleRangeTo: data.purpleRangeTo || 0,
           keepLastNRows: data.keepLastNRows || 126,
           allQData: data.allQData,
+          pageLabel: data.pageLabel || "",
         },
       };
     } else {

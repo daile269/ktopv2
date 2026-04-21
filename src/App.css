@@ -283,7 +283,13 @@ body {
   background: #ffffff;
   border: 1px solid #e0e0e0;
   font-size: 13px;
-  table-layout: fixed; /* Fix alignment issues */
+  /* table-layout: fixed; Removed for unified table */
+}
+
+.unified-table {
+  table-layout: auto !important;
+  width: max-content !important;
+  min-width: 100%;
 }
 
 .data-grid thead {
@@ -318,11 +324,40 @@ body {
   color: #666;
   text-align: center;
   font-size: 30px;
-  width: 120px; /* Width cố định cho các cột 0-9 */
-  min-width: 120px;
+  width: 100px; 
+  min-width: 100px;
   position: sticky;
   top: 41px; /* Offset để nằm dưới group-header */
   z-index: 9;
+}
+
+.sticky-col {
+  position: sticky !important;
+  left: 0;
+  z-index: 12 !important;
+  background-color: #fff !important;
+}
+
+.stt-col {
+  left: 0;
+  width: 80px;
+  min-width: 80px;
+}
+
+.date-col {
+  left: 80px;
+  width: 190px;
+  min-width: 190px;
+}
+
+.dt-col {
+  left: 270px;
+  width: 150px;
+  min-width: 150px;
+}
+
+.group-header.sticky-col {
+  z-index: 15 !important;
 }
 
 .col-header.fixed {
@@ -368,15 +403,15 @@ body {
 
 .grid-input {
   width: 100%;
-  border: 1px solid #e0e0e0;
+  border: none; /* Removed border to let td color show through */
   padding: 6px 8px;
   font-size:35px;
   text-align: center;
-  background: #ffffff;
+  background: transparent; /* Inherit background from td */
   border-radius: 2px;
   outline: none;
   transition: all 0.2s;
-  color: #ef4444; /* Text màu đỏ */
+  color: inherit; /* Inherit color from td */
   font-weight: 600;
 }
 
@@ -578,11 +613,11 @@ body {
 
 .table-section {
   flex: 0 0 auto;
-  width: 1870px; /* Adjusted to match sum of columns */
+  width: 100%;
 }
 
-.table-section.first-table {
-  width: 2070px; /* Adjusted to match sum of columns (includes A, B) */
+.table-section.unified-table-section {
+  width: 100%;
 }
 
 .table-title {

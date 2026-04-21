@@ -50,6 +50,10 @@ const pageSchema = new mongoose.Schema({
     }],
     default: undefined
   },
+  pageLabel: {
+    type: String,
+    default: ""
+  },
   updatedAt: {
     type: Date,
     default: Date.now

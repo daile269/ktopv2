@@ -93,6 +93,7 @@ app.get("/api/pages/:pageId", async (req, res) => {
         purpleRangeTo: page.purpleRangeTo || 0,
         keepLastNRows: page.keepLastNRows || 126,
         allQData: page.allQData,
+        pageLabel: page.pageLabel || "",
       },
     });
 
@@ -124,6 +125,7 @@ app.post("/api/pages/:pageId", async (req, res) => {
       purpleRangeTo,
       keepLastNRows,
       allQData,
+      pageLabel,
     } = req.body;
 
     console.log(`💾 Saving data for page: ${pageId}`);
@@ -178,6 +180,7 @@ app.post("/api/pages/:pageId", async (req, res) => {
         purpleRangeTo: purpleRangeTo || 0,
         keepLastNRows: keepLastNRows || 126,
         allQData,
+        pageLabel: pageLabel || "",
         updatedAt: new Date(),
       },
       {

@@ -1,0 +1,30 @@
+﻿D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:145:  const [purpleRangeFrom, setPurpleRangeFrom] = useState(0);
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:146:  const [purpleRangeTo, setPurpleRangeTo] = useState(0);
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:193:        setPurpleRangeFrom(d.purpleRangeFrom || 0);
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:194:        setPurpleRangeTo(d.purpleRangeTo || 0);
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:365:      purpleRangeFrom,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:366:      purpleRangeTo,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:385:      purpleRangeFrom,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:386:      purpleRangeTo,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:492:      purpleRangeFrom,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:493:      purpleRangeTo,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:540:      purpleRangeFrom,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:541:      purpleRangeTo,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:562:      purpleRangeFrom,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:563:      purpleRangeTo,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:621:      purpleRangeFrom,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:622:      purpleRangeTo,
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:695:            ? currentData.data.purpleRangeFrom
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:699:            ? currentData.data.purpleRangeTo
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:911:                value={purpleRangeFrom}
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:913:                  setPurpleRangeFrom(parseInt(e.target.value) || 0)
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:929:                value={purpleRangeTo}
+D:\Document\Web_Project\ktop_newv2\src\InputPage.jsx:931:                  setPurpleRangeTo(parseInt(e.target.value) || 0)
+D:\Document\Web_Project\ktop_newv2\src\dataService.js:27: * @param {number} purpleRangeFrom - Khoảng số bắt đầu tô tím
+D:\Document\Web_Project\ktop_newv2\src\dataService.js:28: * @param {number} purpleRangeTo - Khoảng số kết thúc tô tím
+D:\Document\Web_Project\ktop_newv2\src\dataService.js:39:  purpleRangeFrom = 0,
+D:\Document\Web_Project\ktop_newv2\src\dataService.js:40:  purpleRangeTo = 0,
+D:\Document\Web_Project\ktop_newv2\src\dataService.js:59:        purpleRangeFrom,
+D:\Document\Web_Project\ktop_newv2\src\dataService.js:60:        purpleRangeTo,
+D:\Document\Web_Project\ktop_newv2\src\dataService.js:129:          purpleRangeFrom: data.purpleRangeFrom || 0,
+D:\Document\Web_Project\ktop_newv2\src\dataService.js:130:          purpleRangeTo: data.purpleRangeTo || 0,

@@ -9,10 +9,8 @@ const TaskRow = memo(
     displayRowNumber,
     isDeleted,
     isSelected,
-    zValue,
     allQData,
     onToggleSelect,
-    onZChange,
     onAChange,
     onBChange,
   }) => {
@@ -39,23 +37,6 @@ const TaskRow = memo(
         </td>
         <td style={{ textAlign: "center", fontSize: "20px" }}>
           {String(displayRowNumber).padStart(3, "0")}
-        </td>
-        <td style={{ width: "200px", minWidth: "200px" }}>
-          <input
-            type="text"
-            className="cell-input"
-            maxLength={10}
-            value={isDeleted ? "" : zValue || ""}
-            onChange={(e) => onZChange(rowIndex, e.target.value)}
-            disabled={isDeleted}
-            style={{
-              textAlign: "center",
-              width: "100%",
-              padding: "8px",
-              fontSize: "12px !important",
-              fontWeight: "normal",
-            }}
-          />
         </td>
         {/* Ngày đã bị loại bỏ */}
         {Array.from({ length: 10 }).map((_, qIndex) => {
@@ -1116,9 +1097,6 @@ function InputPage() {
                   <th rowSpan="2" style={{ padding: "8px 4px" }}>
                     STT
                   </th>
-                  <th rowSpan="2" style={{ minWidth: "200px", width: "200px" }}>
-                    Z
-                  </th>
                   {/* Ngày đã bị loại bỏ */}
                   {Array.from({ length: 10 }, (_, qIndex) => {
                     // Màu background: Q lẻ màu ghi nhạt, Q chẵn màu xanh nhạt
@@ -1194,10 +1172,8 @@ function InputPage() {
                     displayRowNumber={idx}
                     isDeleted={deletedRows[rowIndex]}
                     isSelected={!!selectedRows[rowIndex]}
-                    zValue={zValues[rowIndex]}
                     allQData={allQData}
                     onToggleSelect={handleToggleSelect}
-                    onZChange={handleZChange}
                     onAChange={handleAChange}
                     onBChange={handleBChange}
                   />

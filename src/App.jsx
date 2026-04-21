@@ -1,19 +1,22 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import "./App.css";
 import "./TopToolbar.css";
 import { savePageData, loadPageData, deletePageData } from "./dataService";
 import InputPage from "./InputPage";
 
 function App() {
+  const TOTAL_TABLES = 80;
+  const ROWS = 126;
+
   const [allTableData, setAllTableData] = useState(
-    Array(10)
+    Array(TOTAL_TABLES)
       .fill(null)
       .map(() => []),
   );
   const [allTValues, setAllTValues] = useState(
-    Array(10)
+    Array(TOTAL_TABLES)
       .fill(null)
-      .map(() => Array(126).fill("")),
+      .map(() => Array(ROWS).fill("")),
   );
   const [dateValues, setDateValues] = useState(Array(126).fill(""));
   const [sourceSTTValues, setSourceSTTValues] = useState(Array(126).fill(""));
@@ -41,8 +44,6 @@ function App() {
   const [newRowZ, setNewRowZ] = useState("");
   const [isAddingRow, setIsAddingRow] = useState(false);
   const [keepLastNRows, setKeepLastNRows] = useState("");
-  const [purpleRangeFrom, setPurpleRangeFrom] = useState(0);
-  const [purpleRangeTo, setPurpleRangeTo] = useState(0);
   const [deletedRows, setDeletedRows] = useState(Array(126).fill(false));
   const [zValues, setZValues] = useState(Array(126).fill(""));
   const [showDeleteFirstRowModal, setShowDeleteFirstRowModal] = useState(false);
@@ -51,38 +52,23 @@ function App() {
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [showDeleteByDatesModal, setShowDeleteByDatesModal] = useState(false);
   const [showDeleteLastRowModal, setShowDeleteLastRowModal] = useState(false);
-  const [showPurpleRangeModal, setShowPurpleRangeModal] = useState(false);
-  const [tempPurpleRangeFrom, setTempPurpleRangeFrom] = useState("");
-  const [tempPurpleRangeTo, setTempPurpleRangeTo] = useState("");
-  const [isSavingPurpleRange, setIsSavingPurpleRange] = useState(false);
   const [showKeepLastNRowsSettingsModal, setShowKeepLastNRowsSettingsModal] =
     useState(false);
   const [tempKeepLastNRows, setTempKeepLastNRows] = useState("");
   const [isSavingKeepLastNRows, setIsSavingKeepLastNRows] = useState(false);
-  const [qPurpleInfo, setQPurpleInfo] = useState({});
-  const [viewedQs, setViewedQs] = useState(() => {
-    const saved = localStorage.getItem("viewedQs");
-    return saved ? JSON.parse(saved) : {};
-  });
-  const [deleteRowFrom, setDeleteRowFrom] = useState("");
-  const [deleteRowTo, setDeleteRowTo] = useState("");
-  const [showDeleteByRowsModal, setShowDeleteByRowsModal] = useState(false);
-  const [goToTableNumber, setGoToTableNumber] = useState("");
-
   const tableRefs = useRef([]);
   const isScrollingRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
 
-  const TOTAL_TABLES = 10;
-  const ROWS = 126;
+  const [deleteRowFrom, setDeleteRowFrom] = useState("");
+  const [deleteRowTo, setDeleteRowTo] = useState("");
+  const [showDeleteByRowsModal, setShowDeleteByRowsModal] = useState(false);
+  const [goToTableNumber, setGoToTableNumber] = useState("");
+  const [pageLabel, setPageLabel] = useState("");
+
   const pathname = window.location.pathname.slice(1);
   const pageId = pathname || "q1";
 
-  // Reset tất cả trạng thái "đã xem" (gọi khi thêm hàng mới)
-  const resetViewedQs = () => {
-    setViewedQs({});
-    localStorage.setItem("viewedQs", JSON.stringify({}));
-  };
 
   // Helper function to format date to Vietnamese
   const formatDateToVietnamese = (dateString) => {
@@ -105,6 +91,7 @@ function App() {
 
       try {
         const result = await loadPageData(pageId);
+        console.log("📥 Dữ liệu tải về:", result);
         if (result.success && result.data) {
           setAValues(result.data.aValues || Array(ROWS).fill(""));
           setBValues(result.data.bValues || Array(ROWS).fill(""));
@@ -114,16 +101,8 @@ function App() {
             result.data.sourceSTTValues || Array(ROWS).fill(""),
           );
           setDeletedRows(result.data.deletedRows || Array(ROWS).fill(false));
+          setPageLabel(result.data.pageLabel || "");
 
-          const q1Result = await loadPageData("q1");
-          let loadedPurpleFrom = 0;
-          let loadedPurpleTo = 0;
-          if (q1Result.success && q1Result.data) {
-            loadedPurpleFrom = q1Result.data.purpleRangeFrom || 0;
-            loadedPurpleTo = q1Result.data.purpleRangeTo || 0;
-          }
-          setPurpleRangeFrom(loadedPurpleFrom);
-          setPurpleRangeTo(loadedPurpleTo);
 
           if (result.data.keepLastNRows) {
             setKeepLastNRows(result.data.keepLastNRows);
@@ -172,16 +151,7 @@ function App() {
 
         const tVal = tValues[row] !== "" ? parseInt(tValues[row]) : -1;
         const isRed = col === tVal && tVal !== -1;
-        const isPurple =
-          Number(y) >= Number(purpleRangeFrom) &&
-          Number(y) <= Number(purpleRangeTo);
-        let color = "white";
-
-        // LUÔN giữ logic tô màu đỏ (isRed)
-        // Chỉ giới hạn tô màu tím (isPurple) cho T1 và T2
-        if (isRed && isPurple && !skipColor) color = "purple-red";
-        else if (isRed) color = "red";
-        else if (isPurple && !skipColor) color = "purple";
+        let color = isRed ? "red" : "white";
 
         table[row][col] = { value: `${col}-${y}`, color: color };
         y++;
@@ -192,6 +162,7 @@ function App() {
   };
 
   const generateAllTables = () => {
+    console.log("🌀 Bắt đầu tính toán 80 bảng T...");
     let actualRows = 0;
     for (let i = ROWS - 1; i >= 0; i--) {
       if (aValues[i] || bValues[i] || dateValues[i]) {
@@ -199,11 +170,11 @@ function App() {
         break;
       }
     }
-    const newTValuesArr = Array(10)
+    const newTValuesArr = Array(TOTAL_TABLES)
       .fill(null)
       .map(() => Array(ROWS).fill(""));
     const newTableDataArr = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < TOTAL_TABLES; i++) {
       let v1, v2;
       if (i === 0) {
         v1 = aValues;
@@ -238,12 +209,9 @@ function App() {
     dateValues,
     aValues,
     bValues,
-    purpleRangeFrom,
-    purpleRangeTo,
     isDataLoaded,
     deletedRows,
   ]);
-
   useEffect(() => {
     if (isDataLoaded && allTableData.length > 0) {
       setTimeout(() => {
@@ -252,88 +220,8 @@ function App() {
         );
       }, 150);
     }
-  }, [isDataLoaded, pageId]);
+  }, [isDataLoaded, pageId, allTableData]);
 
-  useEffect(() => {
-    if (qPurpleInfo[pageId]?.hasPurple && !viewedQs[pageId]) {
-      const v = { ...viewedQs, [pageId]: true };
-      setViewedQs(v);
-      localStorage.setItem("viewedQs", JSON.stringify(v));
-    }
-  }, [pageId, qPurpleInfo]);
-
-  useEffect(() => {
-    const loadAllInfo = async () => {
-      const info = {};
-      for (let i = 1; i <= 10; i++) {
-        const qId = `q${i}`;
-        const res = await loadPageData(qId);
-        if (res.success && res.data) {
-          const {
-            aValues: qa,
-            bValues: qb,
-            dateValues: qd,
-            deletedRows: qdel,
-            purpleRangeFrom: pf,
-            purpleRangeTo: pt,
-          } = res.data;
-          if (pf !== undefined && pt !== undefined) {
-            let lastIdx = -1;
-            for (let r = ROWS - 1; r >= 0; r--) {
-              if (
-                !qdel?.[r] &&
-                qd?.[r] !== "" &&
-                qd?.[r] !== undefined &&
-                qd?.[r] !== null
-              ) {
-                lastIdx = r;
-                break;
-              }
-            }
-            if (lastIdx !== -1) {
-              const t1 = [],
-                t2 = [];
-              for (let r = 0; r <= lastIdx; r++) {
-                const nA = parseInt(qa?.[r]) || 0;
-                const nB = parseInt(qb?.[r]) || 0;
-                const valT1 = (nA + nB) % 10;
-                t1.push(valT1);
-                t2.push((nB + valT1) % 10);
-              }
-              let hasP = false;
-              [t1, t2].forEach((tv) => {
-                for (let c = 0; c < 10; c++) {
-                  let y = 1;
-                  for (let r = 0; r <= lastIdx; r++) {
-                    if (qdel?.[r]) continue;
-                    // Bỏ qua hàng rỗng giống generateTableDataArr
-                    if (!qd?.[r] && qa?.[r] === "" && qb?.[r] === "") {
-                      continue;
-                    }
-
-                    if (
-                      r === lastIdx &&
-                      Number(y) >= Number(pf) &&
-                      Number(y) <= Number(pt)
-                    ) {
-                      hasP = true;
-                      break;
-                    }
-                    if (tv[r] === c) y = 1;
-                    else y++;
-                  }
-                  if (hasP) break;
-                }
-              });
-              if (hasP) info[qId] = { hasPurple: true, range: `${pf}-${pt}` };
-            }
-          }
-        }
-      }
-      setQPurpleInfo(info);
-    };
-    loadAllInfo();
-  }, [purpleRangeFrom, purpleRangeTo]);
 
   if (pathname === "input") {
     return <InputPage />;
@@ -367,58 +255,6 @@ function App() {
     }, 50);
   };
 
-  // Lấy thông tin các ô màu vàng trong Q hiện tại (chỉ hàng dưới cùng)
-  const getPurpleCellsInfo = () => {
-    const purpleCells = {};
-
-    // Tìm hàng dưới cùng (hàng mới nhất có dữ liệu)
-    let lastRowIndex = -1;
-    for (let i = dateValues.length - 1; i >= 0; i--) {
-      if (!deletedRows[i] && (dateValues[i] || aValues[i] || bValues[i])) {
-        lastRowIndex = i;
-        break;
-      }
-    }
-
-    // Nếu không có hàng nào, return empty
-    if (lastRowIndex === -1) {
-      return purpleCells;
-    }
-
-    // Chỉ kiểm tra hàng dưới cùng (BỎ T1 VÀ T2)
-    // Chỉ kiểm tra hàng dưới cùng của T1 và T2 theo yêu cầu mới
-    [0, 1].forEach((tableIndex) => {
-      const tablePurpleCells = [];
-
-      if (allTableData[tableIndex] && allTableData[tableIndex][lastRowIndex]) {
-        allTableData[tableIndex][lastRowIndex].forEach((cell, colIndex) => {
-          if (cell.color === "purple" || cell.color === "purple-red") {
-            tablePurpleCells.push(cell.value);
-          }
-        });
-      }
-
-      if (tablePurpleCells.length > 0) {
-        purpleCells[`T${tableIndex + 1}`] = tablePurpleCells;
-      }
-    });
-
-    return purpleCells;
-  };
-
-  // Format purple cells info thành string để hiển thị
-  const formatPurpleCellsInfo = () => {
-    const purpleCells = getPurpleCellsInfo();
-    const entries = Object.entries(purpleCells);
-
-    if (entries.length === 0) {
-      return "Không có bảng nào được BM";
-    }
-
-    // Chỉ hiển thị tên các bảng T, không hiển thị chi tiết ô
-    const tableNames = entries.map(([table]) => table);
-    return tableNames.join(", ");
-  };
 
   // Handle Go To Table
   const handleGoToTable = () => {
@@ -473,184 +309,15 @@ function App() {
         nextY = isRed ? 1 : lastY + 1;
       }
 
-      const isPurple =
-        Number(nextY) >= Number(purpleRangeFrom) &&
-        Number(nextY) <= Number(purpleRangeTo);
-      const color = isPurple ? "purple" : "white";
-      futureRow.push({ value: `${col}-${nextY}`, color: color });
+      futureRow.push({ value: `${col}-${nextY}`, color: "white" });
     }
     return futureRow;
   };
 
-  // Thuật toán sinh bảng (dùng chung cho cả 2 toa)
-  const generateTableData = (tValues, toaName, skipColor = false) => {
-    const COLS = 10;
 
-    // Tính số rows thực tế dựa trên dateValues hoặc tValues
-    let actualRows = 0;
-
-    // Tìm row cuối cùng có ngày
-    for (let i = dateValues.length - 1; i >= 0; i--) {
-      if (
-        dateValues[i] !== "" &&
-        dateValues[i] !== null &&
-        dateValues[i] !== undefined
-      ) {
-        actualRows = Math.max(actualRows, i + 1);
-        break;
-      }
-    }
-
-    // Hoặc tìm row cuối cùng có T value
-    for (let i = tValues.length - 1; i >= 0; i--) {
-      if (
-        tValues[i] !== "" &&
-        tValues[i] !== null &&
-        tValues[i] !== undefined
-      ) {
-        actualRows = Math.max(actualRows, i + 1);
-        break;
-      }
-    }
-
-    // Nếu không có dữ liệu gì, return empty
-    if (actualRows === 0) {
-      return [];
-    }
-
-    const table = Array(actualRows)
-      .fill(null)
-      .map(() => Array(COLS).fill(null));
-
-    // Duyệt qua từng cột (trái sang phải)
-    for (let col = 0; col < COLS; col++) {
-      let y = 1; // Reset y về 1 khi bắt đầu cột mới
-
-      // Duyệt qua từng hàng trong cột (trên xuống dưới)
-      for (let row = 0; row < actualRows; row++) {
-        // Bỏ qua hàng rỗng để không ảnh hưởng đến y (Logic đếm ban đầu)
-        if (tValues[row] === "" && !dateValues[row]) {
-          table[row][col] = { value: "", color: "white" };
-          continue;
-        }
-
-        let currentY = y;
-
-        // Lấy giá trị T của hàng này
-        const tColumnForThisRow =
-          tValues[row] !== "" ? parseInt(tValues[row]) : -1;
-
-        // Xác định màu
-        let color = "white";
-        let shouldResetY = false;
-
-        // Kiểm tra xem có phải ô đỏ không
-        const isRed = col === tColumnForThisRow && tColumnForThisRow !== -1;
-
-        // Kiểm tra xem có nằm trong purple range không
-        const isPurple =
-          Number(currentY) >= Number(purpleRangeFrom) &&
-          Number(currentY) <= Number(purpleRangeTo);
-
-        // Xác định màu cuối cùng
-        if (!skipColor) {
-          if (isRed && isPurple) {
-            color = "purple-red"; // Vừa đỏ vừa vàng: background vàng, chữ đỏ
-            shouldResetY = true;
-          } else if (isRed) {
-            color = "red";
-            shouldResetY = true;
-          } else if (isPurple) {
-            color = "purple";
-          }
-        } else {
-          // Nếu skipColor, vẫn cần reset Y khi gặp ô "lẽ ra là đỏ" để đồng nhất dữ liệu
-          if (isRed) {
-            shouldResetY = true;
-          }
-        }
-
-        table[row][col] = {
-          value: `${col}-${currentY}`,
-          color: color,
-        };
-
-        // Tăng y cho ô tiếp theo
-        y++;
-
-        // Chỉ reset y về 1 khi tô đỏ
-        if (shouldResetY) {
-          y = 1;
-        }
-      }
-    }
-
-    return table;
-  };
-
-  // Generate bảng từ giá trị A và B
-  const generateTableWithValues = () => {
-    // Tính actualRows từ A hoặc B
-    let actualRows = 0;
-    for (let i = aValues.length - 1; i >= 0; i--) {
-      if (
-        (aValues[i] !== "" &&
-          aValues[i] !== null &&
-          aValues[i] !== undefined) ||
-        (bValues[i] !== "" && bValues[i] !== null && bValues[i] !== undefined)
-      ) {
-        actualRows = i + 1;
-        break;
-      }
-    }
-
-    const newAllTValues = Array(TOTAL_TABLES)
-      .fill(null)
-      .map(() => Array(ROWS).fill(""));
-    const newAllTableData = [];
-
-    // Tính toán giá trị T cho tất cả 10 bảng
-    for (let tableIndex = 0; tableIndex < TOTAL_TABLES; tableIndex++) {
-      let prevPrevValues, prevValues;
-
-      if (tableIndex === 0) {
-        // T1 = A + B
-        prevPrevValues = aValues;
-        prevValues = bValues;
-      } else if (tableIndex === 1) {
-        // T2 = B + T1
-        prevPrevValues = bValues;
-        prevValues = newAllTValues[0];
-      } else {
-        // Tn = T(n-2) + T(n-1)
-        prevPrevValues = newAllTValues[tableIndex - 2];
-        prevValues = newAllTValues[tableIndex - 1];
-      }
-
-      for (let rowIdx = 0; rowIdx < actualRows; rowIdx++) {
-        const num1 = parseInt(prevPrevValues[rowIdx]) || 0;
-        const num2 = parseInt(prevValues[rowIdx]) || 0;
-        const sum = num1 + num2;
-        newAllTValues[tableIndex][rowIdx] = String(sum % 10);
-      }
-
-      // Gen bảng dữ liệu (Tất cả T1-T10 đều có màu)
-      const tableData = generateTableData(
-        newAllTValues[tableIndex],
-        `T${tableIndex + 1}`,
-        false, // skipColor = false
-      );
-      newAllTableData.push(tableData);
-    }
-
-    setAllTValues(newAllTValues);
-    setAllTableData(newAllTableData);
-
-    console.log("Hoàn tất gen 10 bảng T!");
-  };
 
   const generateTable = () => {
-    generateTableWithValues();
+    generateAllTables();
   };
 
   const handleGenerate = async () => {
@@ -671,9 +338,11 @@ function App() {
         dateValues,
         deletedRows,
         sourceSTTValues,
-        purpleRangeFrom,
-        purpleRangeTo,
+        0,
+        0,
         keepLastNRows,
+        undefined,
+        pageLabel,
       );
 
       if (result.success) {
@@ -693,9 +362,11 @@ function App() {
                   dateValues,
                   deletedRows,
                   sourceSTTValues,
-                  purpleRangeFrom, // ⭐ Sync purple range
-                  purpleRangeTo, // ⭐ Sync purple range
+                  0, // ⭐ Sync purple range
+                  0, // ⭐ Sync purple range
                   keepLastNRows,
+                  undefined,
+                  qResult.data.pageLabel || "",
                 ),
               );
             }
@@ -703,7 +374,7 @@ function App() {
         }
 
         await Promise.all(syncPromises);
-        setSaveStatus("✅ Đã lưu và đồng bộ khoảng báo màu");
+        setSaveStatus("✅ Đã lưu và đồng bộ");
       } else {
         setSaveStatus("⚠️ Lỗi: " + result.error);
         setError(result.error);
@@ -726,9 +397,11 @@ function App() {
       dateValues,
       deletedRows,
       sourceSTTValues,
-      purpleRangeFrom,
-      purpleRangeTo,
+      0,
+      0,
       keepLastNRows,
+      undefined,
+      pageLabel,
     );
 
     if (result.success) {
@@ -750,9 +423,11 @@ function App() {
                 dateValues,
                 deletedRows,
                 sourceSTTValues,
-                purpleRangeFrom, // ⭐ Sync purple range từ Q hiện tại
-                purpleRangeTo, // ⭐ Sync purple range từ Q hiện tại
+                0, // ⭐ Sync purple range từ Q hiện tại
+                0, // ⭐ Sync purple range từ Q hiện tại
                 keepLastNRows,
+                undefined,
+                qResult.data.pageLabel || "",
               ),
             );
           }
@@ -760,7 +435,7 @@ function App() {
       }
 
       await Promise.all(syncPromises);
-      setSaveStatus("✅ Đã lưu và đồng bộ khoảng báo màu");
+      setSaveStatus("✅ Đã lưu và đồng bộ");
     } else {
       setSaveStatus("⚠️ Lỗi: " + result.error);
       setError(result.error);
@@ -942,8 +617,8 @@ function App() {
             newDateValues,
             newDeletedRows,
             sourceSTTValues,
-            purpleRangeFrom,
-            purpleRangeTo,
+            0,
+            0,
             keepLastNRows,
           ),
         );
@@ -953,8 +628,6 @@ function App() {
     await Promise.all(syncPromises);
     setSaveStatus("✅ Đã thêm hàng mới và đồng bộ");
 
-    // Reset tất cả trạng thái "đã xem" khi thêm hàng mới
-    resetViewedQs();
 
     setShowAddRowModal(false);
     setIsAddingRow(false);
@@ -1024,9 +697,11 @@ function App() {
             dateValues,
             newDeletedRows,
             sourceSTTValues,
-            purpleRangeFrom,
-            purpleRangeTo,
+            0,
+            0,
             n, // Use the new n
+            undefined,
+            result.data.pageLabel || "",
           ),
         );
       }
@@ -1120,8 +795,8 @@ function App() {
             newDateValues,
             newDeletedRows,
             sourceSTTValues,
-            purpleRangeFrom,
-            purpleRangeTo,
+              0,
+              0,
             keepLastNRows,
           ),
         );
@@ -1177,8 +852,8 @@ function App() {
             dateValues,
             newDeletedRows,
             sourceSTTValues,
-            purpleRangeFrom,
-            purpleRangeTo,
+              0,
+              0,
             keepLastNRows,
           ),
         );
@@ -1294,8 +969,8 @@ function App() {
         dateValues,
         newDeletedRows,
         sourceSTTValues,
-        purpleRangeFrom,
-        purpleRangeTo,
+        0,
+        0,
         keepLastNRows,
       );
 
@@ -1313,8 +988,8 @@ function App() {
               dateValues,
               newDeletedRows,
               sourceSTTValues,
-              purpleRangeFrom,
-              purpleRangeTo,
+              0,
+              0,
               keepLastNRows,
             );
           }
@@ -1391,8 +1066,8 @@ function App() {
         dateValues,
         newDeletedRows,
         sourceSTTValues,
-        purpleRangeFrom,
-        purpleRangeTo,
+        0,
+        0,
         keepLastNRows,
       );
 
@@ -1410,8 +1085,8 @@ function App() {
               dateValues,
               newDeletedRows,
               sourceSTTValues,
-              purpleRangeFrom,
-              purpleRangeTo,
+              0,
+              0,
               keepLastNRows,
             );
           }
@@ -1439,70 +1114,6 @@ function App() {
     }
   };
 
-  // Handle save purple range settings
-  const handleSavePurpleRange = async () => {
-    try {
-      // Validate input
-      const from = parseInt(tempPurpleRangeFrom) || 0;
-      const to = parseInt(tempPurpleRangeTo) || 0;
-
-      if (from < 0 || to < 0) {
-        alert("⚠️ Giá trị phải lớn hơn hoặc bằng 0!");
-        return;
-      }
-
-      if (from > to) {
-        alert("⚠️ Giá trị 'Từ' phải nhỏ hơn hoặc bằng 'Đến'!");
-        return;
-      }
-
-      // Set loading state
-      setIsSavingPurpleRange(true);
-
-      // Update state
-      setPurpleRangeFrom(from);
-      setPurpleRangeTo(to);
-
-      // Sync to all Q1-Q10
-      setSaveStatus("💾 Đang đồng bộ...");
-      const syncPromises = [];
-      for (let i = 1; i <= 10; i++) {
-        const qId = `q${i}`;
-        const result = await loadPageData(qId);
-        if (result.success && result.data) {
-          syncPromises.push(
-            savePageData(
-              qId,
-              result.data.aValues,
-              result.data.bValues,
-              result.data.zValues || Array(ROWS).fill(""),
-              result.data.dateValues || dateValues,
-              result.data.deletedRows || deletedRows,
-              result.data.sourceSTTValues || Array(ROWS).fill(""),
-              from,
-              to,
-              result.data.keepLastNRows || keepLastNRows,
-            ),
-          );
-        }
-      }
-
-      await Promise.all(syncPromises);
-      setSaveStatus("✅ Đã lưu cài đặt báo màu");
-      setTimeout(() => setSaveStatus(""), 2000);
-
-      // Close modal
-      setShowPurpleRangeModal(false);
-      alert(`✅ Đã lưu khoảng báo màu: ${from} - ${to}`);
-    } catch (error) {
-      console.error("Error saving purple range:", error);
-      alert("⚠️ Lỗi khi lưu cài đặt: " + error.message);
-      setSaveStatus("⚠️ Lỗi khi lưu");
-      setTimeout(() => setSaveStatus(""), 2000);
-    } finally {
-      setIsSavingPurpleRange(false);
-    }
-  };
 
   // Handle save keep last N rows settings
   const handleSaveKeepLastNRows = async () => {
@@ -1537,8 +1148,8 @@ function App() {
               result.data.dateValues || dateValues,
               result.data.deletedRows || deletedRows,
               result.data.sourceSTTValues || Array(ROWS).fill(""),
-              result.data.purpleRangeFrom || purpleRangeFrom,
-              result.data.purpleRangeTo || purpleRangeTo,
+              0,
+              0,
               n,
             ),
           );
@@ -1546,7 +1157,7 @@ function App() {
       }
 
       await Promise.all(syncPromises);
-      setSaveStatus("✅ Đã lưu cài đặt dòng tồn tại");
+      setSaveStatus("✅ Đã lưu cài đặt dòng đã toán");
 
       // Close modal
       setShowKeepLastNRowsSettingsModal(false);
@@ -1662,58 +1273,6 @@ function App() {
             </button>
           </div>
 
-          {/* Báo màu Control */}
-          <div
-            className="toolbar-group"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              border: "3px solid #007bff",
-              borderRadius: "8px",
-              padding: "10px 12px",
-              backgroundColor: "#e7f3ff",
-            }}
-          >
-            <label style={{ fontSize: "25px", fontWeight: "bold" }}>
-              Báo màu:
-            </label>
-            <span
-              style={{
-                fontSize: "25px",
-                fontWeight: "600",
-                color: "#333",
-                padding: "6px 12px",
-                backgroundColor: "#fff",
-                border: "2px solid #ffc107",
-                borderRadius: "4px",
-                minWidth: "120px",
-                textAlign: "center",
-              }}
-            >
-              {purpleRangeFrom || 0} - {purpleRangeTo || 0}
-            </span>
-            <button
-              onClick={() => {
-                setTempPurpleRangeFrom(purpleRangeFrom);
-                setTempPurpleRangeTo(purpleRangeTo);
-                setShowPurpleRangeModal(true);
-              }}
-              className="toolbar-button"
-              style={{
-                fontSize: "18px",
-                padding: "6px 12px",
-                backgroundColor: "#6c757d",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-              title="Cài đặt khoảng báo màu"
-            >
-              ⚙️
-            </button>
-          </div>
 
           {/* Dòng tồn tại Control */}
           <div
@@ -1799,23 +1358,7 @@ function App() {
             {/* <label style={{ fontSize: "35px", fontWeight: "bold" }}>Q:</label> */}
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
               const qId = `q${num}`;
-              const hasPurple = qPurpleInfo[qId]?.hasPurple;
-              const range = qPurpleInfo[qId]?.range;
               const isActive = pageId === qId;
-              const isViewed = viewedQs[qId];
-
-              // Xác định màu background
-              let bgColor = "#ffffff"; // Mặc định: trắng (không báo màu)
-              if (hasPurple && !isViewed) {
-                bgColor = "#ff9800"; // cam: có báo màu mới (chưa xem)
-              } else if (hasPurple && isViewed) {
-                bgColor = "#ffeb3b"; // vàng: báo màu đã xem
-              }
-
-              // Nếu đang active (đang xem), ưu tiên màu xanh
-              if (isActive) {
-                bgColor = "#4a90e2"; // màu xanh lá
-              }
 
               return (
                 <button
@@ -1825,9 +1368,9 @@ function App() {
                   }}
                   className="toolbar-button"
                   style={{
-                    backgroundColor: bgColor,
+                    backgroundColor: isActive ? "#4a90e2" : "#ffffff",
                     color: isActive ? "white" : "#333",
-                    fontWeight: isActive || hasPurple ? "bold" : "normal",
+                    fontWeight: isActive ? "bold" : "normal",
                     border: isActive
                       ? "3px solid #4a90e2"
                       : "1px solid #d0d0d0",
@@ -1836,48 +1379,13 @@ function App() {
                     minWidth: "60px",
                     borderRadius: "8px",
                     cursor: "pointer",
-                    boxShadow: isActive
-                      ? "0 0 10px rgba(40, 167, 69, 0.5)"
-                      : "none",
                   }}
-                  title={
-                    hasPurple
-                      ? isViewed
-                        ? `Đã xem - Báo màu: ${range}`
-                        : `MỚI - Báo màu: ${range}`
-                      : `Chuyển đến Q${num}`
-                  }
                 >
                   Q{num}
-                  {hasPurple && !isViewed
-                    ? " BM"
-                    : hasPurple && isViewed
-                      ? " ĐX"
-                      : ""}
                 </button>
               );
             })}
           </div>
-          {/* Purple Cells Info Display */}
-          {allTableData.length > 0 && (
-            <div
-              style={{
-                marginLeft: "12px",
-                padding: "8px 12px",
-                backgroundColor: "#fff3cd",
-                border: "2px solid #ffc107",
-                borderRadius: "6px",
-                fontSize: "24px",
-                fontWeight: "bold",
-                maxWidth: "1100px",
-                overflow: "auto",
-                whiteSpace: "nowrap",
-              }}
-              title="Các ô đang được báo màu vàng trong Q này"
-            >
-              📍 MQ{pageId.replace("q", "")}: {formatPurpleCellsInfo()}
-            </div>
-          )}
 
           {/* Status Messages */}
           <div className="toolbar-group">
@@ -1964,97 +1472,89 @@ function App() {
         )}
 
         <div className="tables-container">
-          {allTableData.map((tableData, tableIndex) => (
+          <div className="table-section unified-table-section">
             <div
-              key={tableIndex}
-              className={`table-section ${tableIndex === 0 ? "first-table" : ""}`}
+              className="data-grid-wrapper"
+              ref={(el) => (tableRefs.current[0] = el)}
+              onScroll={(e) => handleSyncScroll(e, 0)}
             >
-              <div
-                className="data-grid-wrapper"
-                ref={(el) => (tableRefs.current[tableIndex] = el)}
-                onScroll={(e) => handleSyncScroll(e, tableIndex)}
-              >
-                {tableData.length > 0 ? (
-                  <table className="data-grid">
-                    <colgroup>
-                      <col style={{ width: "80px" }} /> {/* STT */}
-                      <col style={{ width: "190px" }} /> {/* Ngày */}
-                      <col style={{ width: "150px" }} /> {/* STT D.T */}
-                      {tableIndex === 0 && (
-                        <>
-                          <col style={{ width: "100px" }} /> {/* A */}
-                          <col style={{ width: "100px" }} /> {/* B */}
-                        </>
-                      )}
-                      <col style={{ width: "100px" }} /> {/* T */}
-                      {[...Array(10)].map((_, i) => (
-                        <col key={i} style={{ width: "120px" }} />
-                      ))}
-                    </colgroup>
+              {allTableData.length > 0 ? (
+                <table className="data-grid unified-table">
                     <thead>
                       <tr>
-                        <th colSpan="3" className="group-header">
-                          Q{pageId.replace("q", "")}
+                        <th colSpan="3" className="group-header sticky-col">
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                            <span>Q{pageId.replace("q", "").toUpperCase()}</span>
+                            <input
+                              type="text"
+                              value={pageLabel}
+                              onChange={(e) => setPageLabel(e.target.value)}
+                              placeholder="..."
+                              title="Nhập thêm ghi chú sau tên Q"
+                              style={{
+                                background: 'rgba(111, 66, 193, 0.05)',
+                                border: 'none',
+                                borderBottom: '2px solid #6f42c1',
+                                color: '#6f42c1',
+                                fontSize: '24px',
+                                fontWeight: 'bold',
+                                textAlign: 'left',
+                                width: '150px',
+                                padding: '2px 8px',
+                                outline: 'none',
+                                borderRadius: '4px',
+                                fontStyle: 'italic'
+                              }}
+                            />
+                          </div>
                         </th>
-                        {tableIndex === 0 && (
-                          <>
-                            <th colSpan="1" className="group-header">
-                              A
-                            </th>
-                            <th colSpan="1" className="group-header">
-                              B
-                            </th>
-                          </>
-                        )}
                         <th colSpan="1" className="group-header">
-                          Thông
+                          A
                         </th>
-                        <th colSpan="10" className="group-header">
-                          Q{pageId.replace("q", "")} - Tham số: áp suất
-                          nước-nhiệt độ- độ ph- tỷ phần sinh hóa- mùa- f sinh
-                          học
+                        <th colSpan="1" className="group-header">
+                          B
                         </th>
+                        {allTableData.map((_, tableIndex) => (
+                          <th key={tableIndex} colSpan="1" className="group-header">
+                            T{tableIndex + 1}
+                          </th>
+                        ))}
                       </tr>
                       <tr>
-                        <th className="col-header fixed">STT</th>
+                        <th className="col-header fixed sticky-col stt-col">STT</th>
                         <th
-                          className="col-header fixed date-col-header"
+                          className="col-header fixed date-col-header sticky-col date-col"
                           style={{ minWidth: "190px", width: "190px" }}
                         >
                           Ngày
                         </th>
                         <th
-                          className="col-header fixed"
+                          className="col-header fixed sticky-col dt-col"
                           style={{ minWidth: "150px", width: "150px" }}
-                        ></th>
-                        {tableIndex === 0 && (
-                          <>
-                            <th className="col-header fixed">A</th>
-                            <th className="col-header fixed">B</th>
-                          </>
-                        )}
-                        <th className="col-header fixed">T{tableIndex + 1}</th>
-                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                          <th key={num} className="col-header">
-                            {num}
-                          </th>
+                        >
+                          STT_D.T
+                        </th>
+                        <th className="col-header fixed">A</th>
+                        <th className="col-header fixed">B</th>
+                        {allTableData.map((_, tableIndex) => (
+                          <th key={tableIndex} className="col-header fixed">T{tableIndex + 1}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {(() => {
                         let displayRowNumber = -1;
-                        return tableData.map((row, rowIndex) => {
-                          // Skip deleted rows
+                        // Use the first table's data length to map rows
+                        return allTableData[0].map((_, rowIndex) => {
                           if (deletedRows[rowIndex]) return null;
-
                           displayRowNumber++;
+
                           return (
                             <tr key={rowIndex}>
-                              <td className="data-cell fixed">
+                              <td className="data-cell fixed sticky-col stt-col">
                                 {String(displayRowNumber).padStart(3, "0")}
                               </td>
-                              <td className="data-cell fixed date-col">
+                              <td className="data-cell fixed date-col sticky-col">
                                 <input
                                   type="date"
                                   className="date-input"
@@ -2063,260 +1563,93 @@ function App() {
                                     const newDateValues = [...dateValues];
                                     newDateValues[rowIndex] = e.target.value;
                                     setDateValues(newDateValues);
-
-                                    // Sync sang tất cả Q1-Q10
+                                    // Sync logic (kept original)
                                     const syncPromises = [];
                                     for (let i = 1; i <= 10; i++) {
                                       const qId = `q${i}`;
-                                      // Load data hiện tại của Q này
                                       const result = await loadPageData(qId);
                                       if (result.success && result.data) {
-                                        // Update dateValues và save lại
                                         syncPromises.push(
                                           savePageData(
                                             qId,
                                             result.data.aValues,
                                             result.data.bValues,
-                                            result.data.zValues ||
-                                              Array(ROWS).fill(""),
+                                            result.data.zValues || Array(ROWS).fill(""),
                                             newDateValues,
                                             result.data.deletedRows || [],
                                             sourceSTTValues,
-                                            purpleRangeFrom,
-                                            purpleRangeTo,
+                                            0,
+                                            0,
                                             keepLastNRows,
+                                            undefined,
+                                            result.data.pageLabel || "",
                                           ),
                                         );
                                       }
                                     }
                                     await Promise.all(syncPromises);
                                   }}
-                                  style={{
-                                    width: "100%",
-                                    border: "none",
-                                    background: "transparent",
-                                    fontSize: "22px",
-                                    padding: "4px",
-                                  }}
                                 />
                               </td>
-                              <td
-                                className="data-cell fixed"
-                                style={{ minWidth: "150px", width: "150px" }}
-                              >
+                              <td className="data-cell fixed sticky-col dt-col" style={{ minWidth: "150px", width: "150px" }}>
                                 <input
                                   type="text"
                                   className="grid-input"
                                   value={sourceSTTValues[rowIndex] || ""}
                                   readOnly={true}
-                                  style={{
-                                    width: "100%",
-                                    border: "none",
-                                    background: "transparent",
-                                    fontSize: "35px",
-                                    textAlign: "center",
-                                    fontWeight: "bold",
-                                    color: "#6f42c1",
-                                  }}
+                                  style={{ color: "#6f42c1", fontWeight: "bold" }}
                                 />
                               </td>
-                              {tableIndex === 0 && (
-                                <>
-                                  <td
-                                    className={`data-cell fixed value-col ${
-                                      highlightedACells[rowIndex]
-                                        ? "highlighted-t-cell"
-                                        : ""
-                                    }`}
-                                    onClick={() => handleACellClick(rowIndex)}
-                                  >
-                                    <input
-                                      type="text"
-                                      className="grid-input"
-                                      value={aValues[rowIndex] || ""}
-                                      readOnly={true}
-                                      style={{
-                                        width: "100%",
-                                        border: "none",
-                                        background: "transparent",
-                                        fontSize: "35px",
-                                        textAlign: "center",
-                                        color: highlightedACells[rowIndex]
-                                          ? "white"
-                                          : "#ef4444",
-                                        fontWeight: "600",
-                                        pointerEvents: "none",
-                                      }}
-                                    />
-                                  </td>
-                                  <td
-                                    className={`data-cell fixed value-col ${
-                                      highlightedBCells[rowIndex]
-                                        ? "highlighted-t-cell"
-                                        : ""
-                                    }`}
-                                    onClick={() => handleBCellClick(rowIndex)}
-                                  >
-                                    <input
-                                      type="text"
-                                      className="grid-input"
-                                      value={bValues[rowIndex] || ""}
-                                      readOnly={true}
-                                      style={{
-                                        width: "100%",
-                                        border: "none",
-                                        background: "transparent",
-                                        fontSize: "35px",
-                                        textAlign: "center",
-                                        color: highlightedBCells[rowIndex]
-                                          ? "white"
-                                          : "#ef4444",
-                                        fontWeight: "600",
-                                        pointerEvents: "none",
-                                      }}
-                                    />
-                                  </td>
-                                </>
-                              )}
-                              <td
-                                className={`data-cell fixed value-col ${
-                                  highlightedTCells[tableIndex]?.[rowIndex]
-                                    ? "highlighted-t-cell"
-                                    : ""
-                                }`}
-                                onClick={() =>
-                                  handleTCellClick(tableIndex, rowIndex)
-                                }
-                              >
-                                <input
-                                  type="text"
-                                  className="grid-input"
-                                  value={allTValues[tableIndex][rowIndex]}
-                                  onChange={() => {}}
-                                  readOnly={true}
-                                  style={{
-                                    pointerEvents: "none",
-                                  }}
-                                />
+                              <td className={`data-cell fixed ${highlightedACells[rowIndex] ? "highlighted-t-cell" : ""}`} onClick={() => handleACellClick(rowIndex)}>
+                                <input type="text" className="grid-input" value={aValues[rowIndex] || ""} readOnly={true} style={{ color: highlightedACells[rowIndex] ? "white" : "#ef4444" }} />
                               </td>
-                              {row.map((cell, colIndex) => (
-                                <td
-                                  key={colIndex}
-                                  className={`data-cell ${cell.color} ${
-                                    highlightedCells[tableIndex]?.[rowIndex]?.[
-                                      colIndex
-                                    ]
-                                      ? "highlighted-cell"
-                                      : ""
-                                  }`}
-                                  onClick={() =>
-                                    handleCellClick(
-                                      tableIndex,
-                                      rowIndex,
-                                      colIndex,
-                                    )
-                                  }
-                                >
-                                  {cell.value}
-                                </td>
-                              ))}
+                              <td className={`data-cell fixed ${highlightedBCells[rowIndex] ? "highlighted-t-cell" : ""}`} onClick={() => handleBCellClick(rowIndex)}>
+                                <input type="text" className="grid-input" value={bValues[rowIndex] || ""} readOnly={true} style={{ color: highlightedBCells[rowIndex] ? "white" : "#ef4444" }} />
+                              </td>
+                              {allTableData.map((tableData, tableIndex) => {
+                                const tValue = allTValues[tableIndex][rowIndex];
+                                return (
+                                  <td
+                                    key={tableIndex}
+                                    className={`data-cell fixed ${highlightedTCells[tableIndex]?.[rowIndex] ? "highlighted-t-cell" : ""}`}
+                                    onClick={() => handleTCellClick(tableIndex, rowIndex)}
+                                  >
+                                    <input type="text" className="grid-input" value={tValue} readOnly={true} style={{ pointerEvents: "none", color: "inherit" }} />
+                                  </td>
+                                );
+                              })}
                             </tr>
                           );
                         });
                       })()}
-
-                      {/* Dòng tương lai (Dòng gợi ý) */}
-                      {tableData.length > 0 && (
-                        <tr className="future-row">
-                          <td
-                            className="data-cell fixed future-cell"
-                            style={{
-                              opacity: 0.5,
-                              fontStyle: "italic",
-                              height: "50px",
-                              fontWeight: "300",
-                            }}
-                          >
-                            &nbsp;
-                          </td>
-                          <td
-                            className="data-cell fixed future-cell"
-                            style={{
-                              opacity: 0.5,
-                              fontStyle: "italic",
-                              fontWeight: "300",
-                            }}
-                          >
-                            &nbsp;
-                          </td>
-                          <td
-                            className="data-cell fixed future-cell"
-                            style={{
-                              fontStyle: "italic",
-                              fontWeight: 600,
-                            }}
-                          >
-                            &nbsp;
-                          </td>
-                          {tableIndex === 0 && (
-                            <>
-                              <td
-                                className="data-cell fixed future-cell"
-                                style={{
-                                  fontStyle: "italic",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                &nbsp;
-                              </td>
-                              <td
-                                className="data-cell fixed future-cell"
-                                style={{
-                                  fontStyle: "italic",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                &nbsp;
-                              </td>
-                            </>
-                          )}
-                          <td
-                            className="data-cell fixed future-cell"
-                            style={{
-                              fontStyle: "italic",
-                              fontWeight: 600,
-                            }}
-                          >
-                            &nbsp;
-                          </td>
-                          {getFutureRow(tableData).map((cell, colIdx) => (
-                            <td
-                              key={colIdx}
-                              className={`data-cell ${cell.color} future-cell`}
-                              style={{
-                                pointerEvents: "none",
-                                height: "50px",
-                                fontStyle: "italic",
-                                fontWeight: 600,
-                              }}
-                            >
-                              {cell.value}
-                            </td>
-                          ))}
-                        </tr>
-                      )}
+                      {/* Unified Future Row */}
+                      <tr className="future-row">
+                        <td className="data-cell fixed future-cell sticky-col stt-col" style={{ opacity: 0.5, fontStyle: "italic", height: "50px" }}>&nbsp;</td>
+                        <td className="data-cell fixed future-cell sticky-col date-col" style={{ opacity: 0.5, fontStyle: "italic" }}>&nbsp;</td>
+                        <td className="data-cell fixed future-cell sticky-col dt-col" style={{ fontStyle: "italic" }}>&nbsp;</td>
+                        <td className="data-cell fixed future-cell" style={{ fontStyle: "italic" }}>&nbsp;</td>
+                        <td className="data-cell fixed future-cell" style={{ fontStyle: "italic" }}>&nbsp;</td>
+                        {allTableData.map((tableData, tableIndex) => {
+                          const futureRow = getFutureRow(tableData);
+                          const tValue = allTValues[tableIndex][allTValues[tableIndex].length - 1]; // This is not quite right for future row, but let's stick to the color logic
+                          // For future row, we don't have a value yet, or we use the predicted one.
+                          // The color in the T column for future row should probably just be generic or based on the prediction.
+                          return (
+                            <td key={tableIndex} className="data-cell fixed future-cell" style={{ fontStyle: "italic" }}>&nbsp;</td>
+                          );
+                        })}
+                      </tr>
                     </tbody>
                   </table>
                 ) : (
                   <div className="empty-message">
-                    Nhập giá trị T{tableIndex + 1} và nhấn "Tính"
+                    Đang tính toán T1-T80...
                   </div>
                 )}
               </div>
             </div>
-          ))}
+          </div>
         </div>
-      </div>
 
       {/* Delete Modal */}
       {showDeleteModal && (
@@ -2912,132 +2245,6 @@ function App() {
         </div>
       )}
 
-      {/* Purple Range Settings Modal */}
-      {showPurpleRangeModal && (
-        <div
-          className="modal-overlay"
-          onClick={() => setShowPurpleRangeModal(false)}
-        >
-          <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "500px", width: "90%" }}
-          >
-            <div className="modal-header">
-              <h3 style={{ fontSize: "35px" }}>⚙️ Cài đặt khoảng báo màu</h3>
-            </div>
-
-            <div className="modal-body">
-              <div className="form-group">
-                <label
-                  style={{
-                    fontSize: "35px",
-                    fontWeight: "bold",
-                    marginBottom: "8px",
-                    display: "block",
-                  }}
-                >
-                  Từ:
-                </label>
-                <input
-                  type="number"
-                  value={tempPurpleRangeFrom}
-                  onChange={(e) => setTempPurpleRangeFrom(e.target.value)}
-                  placeholder="Nhập giá trị từ"
-                  min="0"
-                  disabled={isSavingPurpleRange}
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    fontSize: "35px",
-                    border: "2px solid #ffc107",
-                    borderRadius: "6px",
-                    textAlign: "center",
-                    cursor: isSavingPurpleRange ? "not-allowed" : "text",
-                    opacity: isSavingPurpleRange ? 0.6 : 1,
-                  }}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginTop: "20px" }}>
-                <label
-                  style={{
-                    fontSize: "35px",
-                    fontWeight: "bold",
-                    marginBottom: "8px",
-                    display: "block",
-                  }}
-                >
-                  Đến:
-                </label>
-                <input
-                  type="number"
-                  value={tempPurpleRangeTo}
-                  onChange={(e) => setTempPurpleRangeTo(e.target.value)}
-                  placeholder="Nhập giá trị đến"
-                  min="0"
-                  disabled={isSavingPurpleRange}
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    fontSize: "35px",
-                    border: "2px solid #ffc107",
-                    borderRadius: "6px",
-                    textAlign: "center",
-                    cursor: isSavingPurpleRange ? "not-allowed" : "text",
-                    opacity: isSavingPurpleRange ? 0.6 : 1,
-                  }}
-                />
-              </div>
-
-              <div
-                style={{
-                  marginTop: "20px",
-                  padding: "12px",
-                  backgroundColor: "#fff3cd",
-                  border: "1px solid #ffc107",
-                  borderRadius: "6px",
-                  fontSize: "16px",
-                  color: "#856404",
-                }}
-              >
-                💡 <strong>Lưu ý:</strong> Các ô có giá trị trong khoảng này sẽ
-                được tô màu vàng để báo hiệu.
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <button
-                className="btn-cancel"
-                onClick={() => setShowPurpleRangeModal(false)}
-                disabled={isSavingPurpleRange}
-                style={{
-                  fontSize: "18px",
-                  padding: "12px 24px",
-                  cursor: isSavingPurpleRange ? "not-allowed" : "pointer",
-                  opacity: isSavingPurpleRange ? 0.6 : 1,
-                }}
-              >
-                Hủy
-              </button>
-              <button
-                className="btn-delete"
-                onClick={handleSavePurpleRange}
-                disabled={isSavingPurpleRange}
-                style={{
-                  fontSize: "18px",
-                  padding: "12px 24px",
-                  backgroundColor: isSavingPurpleRange ? "#6c757d" : "#28a745",
-                  cursor: isSavingPurpleRange ? "not-allowed" : "pointer",
-                  opacity: isSavingPurpleRange ? 0.7 : 1,
-                }}
-              >
-                {isSavingPurpleRange ? "⏳ Đang lưu..." : "💾 Lưu"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Keep Last N Rows Settings Modal */}
       {showKeepLastNRowsSettingsModal && (
