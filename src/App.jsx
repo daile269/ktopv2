@@ -69,7 +69,6 @@ function App() {
   const pathname = window.location.pathname.slice(1);
   const pageId = pathname || "q1";
 
-
   // Helper function to format date to Vietnamese
   const formatDateToVietnamese = (dateString) => {
     if (!dateString) return "";
@@ -102,7 +101,6 @@ function App() {
           );
           setDeletedRows(result.data.deletedRows || Array(ROWS).fill(false));
           setPageLabel(result.data.pageLabel || "");
-
 
           if (result.data.keepLastNRows) {
             setKeepLastNRows(result.data.keepLastNRows);
@@ -205,13 +203,7 @@ function App() {
 
   useEffect(() => {
     if (isDataLoaded) generateAllTables();
-  }, [
-    dateValues,
-    aValues,
-    bValues,
-    isDataLoaded,
-    deletedRows,
-  ]);
+  }, [dateValues, aValues, bValues, isDataLoaded, deletedRows]);
   useEffect(() => {
     if (isDataLoaded && allTableData.length > 0) {
       setTimeout(() => {
@@ -221,7 +213,6 @@ function App() {
       }, 150);
     }
   }, [isDataLoaded, pageId, allTableData]);
-
 
   if (pathname === "input") {
     return <InputPage />;
@@ -254,7 +245,6 @@ function App() {
       isScrollingRef.current = null;
     }, 50);
   };
-
 
   // Handle Go To Table
   const handleGoToTable = () => {
@@ -313,8 +303,6 @@ function App() {
     }
     return futureRow;
   };
-
-
 
   const generateTable = () => {
     generateAllTables();
@@ -628,7 +616,6 @@ function App() {
     await Promise.all(syncPromises);
     setSaveStatus("✅ Đã thêm hàng mới và đồng bộ");
 
-
     setShowAddRowModal(false);
     setIsAddingRow(false);
 
@@ -795,8 +782,8 @@ function App() {
             newDateValues,
             newDeletedRows,
             sourceSTTValues,
-              0,
-              0,
+            0,
+            0,
             keepLastNRows,
           ),
         );
@@ -852,8 +839,8 @@ function App() {
             dateValues,
             newDeletedRows,
             sourceSTTValues,
-              0,
-              0,
+            0,
+            0,
             keepLastNRows,
           ),
         );
@@ -1114,7 +1101,6 @@ function App() {
     }
   };
 
-
   // Handle save keep last N rows settings
   const handleSaveKeepLastNRows = async () => {
     try {
@@ -1255,8 +1241,7 @@ function App() {
                 marginRight: "10px",
               }}
             >
-              Bảng tính - APP {import.meta.env.VITE_APP_STT || ""}
-              {import.meta.env.VITE_SITE_ID === "site_a" ? "A" : "B"}
+              Bảng tính - APP Phần mềm chung
             </button>
             <button
               onClick={() => setShowDeleteModal(true)}
@@ -1272,7 +1257,6 @@ function App() {
               💾 Lưu dữ liệu
             </button>
           </div>
-
 
           {/* Dòng tồn tại Control */}
           <div
@@ -1480,176 +1464,268 @@ function App() {
             >
               {allTableData.length > 0 ? (
                 <table className="data-grid unified-table">
-                    <thead>
-                      <tr>
-                        <th colSpan="3" className="group-header sticky-col">
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                            <span>Q{pageId.replace("q", "").toUpperCase()}</span>
-                            <input
-                              type="text"
-                              value={pageLabel}
-                              onChange={(e) => setPageLabel(e.target.value)}
-                              placeholder="..."
-                              title="Nhập thêm ghi chú sau tên Q"
-                              style={{
-                                background: 'rgba(111, 66, 193, 0.05)',
-                                border: 'none',
-                                borderBottom: '2px solid #6f42c1',
-                                color: '#6f42c1',
-                                fontSize: '24px',
-                                fontWeight: 'bold',
-                                textAlign: 'left',
-                                width: '150px',
-                                padding: '2px 8px',
-                                outline: 'none',
-                                borderRadius: '4px',
-                                fontStyle: 'italic'
-                              }}
-                            />
-                          </div>
-                        </th>
-                        <th colSpan="1" className="group-header">
-                          A
-                        </th>
-                        <th colSpan="1" className="group-header">
-                          B
-                        </th>
-                        {allTableData.map((_, tableIndex) => (
-                          <th key={tableIndex} colSpan="1" className="group-header">
-                            T{tableIndex + 1}
-                          </th>
-                        ))}
-                      </tr>
-                      <tr>
-                        <th className="col-header fixed sticky-col stt-col">STT</th>
-                        <th
-                          className="col-header fixed date-col-header sticky-col date-col"
-                          style={{ minWidth: "190px", width: "190px" }}
+                  <thead>
+                    <tr>
+                      <th colSpan="3" className="group-header sticky-col">
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "10px",
+                          }}
                         >
-                          Ngày
-                        </th>
+                          <span>Q{pageId.replace("q", "").toUpperCase()}</span>
+                          <input
+                            type="text"
+                            value={pageLabel}
+                            onChange={(e) => setPageLabel(e.target.value)}
+                            placeholder="..."
+                            title="Nhập thêm ghi chú sau tên Q"
+                            style={{
+                              background: "rgba(111, 66, 193, 0.05)",
+                              border: "none",
+                              borderBottom: "2px solid #6f42c1",
+                              color: "#6f42c1",
+                              fontSize: "24px",
+                              fontWeight: "bold",
+                              textAlign: "left",
+                              width: "150px",
+                              padding: "2px 8px",
+                              outline: "none",
+                              borderRadius: "4px",
+                              fontStyle: "italic",
+                            }}
+                          />
+                        </div>
+                      </th>
+                      <th colSpan="1" className="group-header">
+                        A
+                      </th>
+                      <th colSpan="1" className="group-header">
+                        B
+                      </th>
+                      {allTableData.map((_, tableIndex) => (
                         <th
-                          className="col-header fixed sticky-col dt-col"
-                          style={{ minWidth: "150px", width: "150px" }}
+                          key={tableIndex}
+                          colSpan="1"
+                          className="group-header"
                         >
-                          STT_D.T
+                          T{tableIndex + 1}
                         </th>
-                        <th className="col-header fixed">A</th>
-                        <th className="col-header fixed">B</th>
-                        {allTableData.map((_, tableIndex) => (
-                          <th key={tableIndex} className="col-header fixed">T{tableIndex + 1}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(() => {
-                        let displayRowNumber = -1;
-                        // Use the first table's data length to map rows
-                        return allTableData[0].map((_, rowIndex) => {
-                          if (deletedRows[rowIndex]) return null;
-                          displayRowNumber++;
+                      ))}
+                    </tr>
+                    <tr>
+                      <th className="col-header fixed sticky-col stt-col">
+                        STT
+                      </th>
+                      <th
+                        className="col-header fixed date-col-header sticky-col date-col"
+                        style={{ minWidth: "190px", width: "190px" }}
+                      >
+                        Ngày
+                      </th>
+                      <th
+                        className="col-header fixed sticky-col dt-col"
+                        style={{ minWidth: "150px", width: "150px" }}
+                      >
+                        STT_D.T
+                      </th>
+                      <th className="col-header fixed">A</th>
+                      <th className="col-header fixed">B</th>
+                      {allTableData.map((_, tableIndex) => (
+                        <th key={tableIndex} className="col-header fixed">
+                          T{tableIndex + 1}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      let displayRowNumber = -1;
+                      // Use the first table's data length to map rows
+                      return allTableData[0].map((_, rowIndex) => {
+                        if (deletedRows[rowIndex]) return null;
+                        displayRowNumber++;
 
-                          return (
-                            <tr key={rowIndex}>
-                              <td className="data-cell fixed sticky-col stt-col">
-                                {String(displayRowNumber).padStart(3, "0")}
-                              </td>
-                              <td className="data-cell fixed date-col sticky-col">
-                                <input
-                                  type="date"
-                                  className="date-input"
-                                  value={dateValues[rowIndex] || ""}
-                                  onChange={async (e) => {
-                                    const newDateValues = [...dateValues];
-                                    newDateValues[rowIndex] = e.target.value;
-                                    setDateValues(newDateValues);
-                                    // Sync logic (kept original)
-                                    const syncPromises = [];
-                                    for (let i = 1; i <= 10; i++) {
-                                      const qId = `q${i}`;
-                                      const result = await loadPageData(qId);
-                                      if (result.success && result.data) {
-                                        syncPromises.push(
-                                          savePageData(
-                                            qId,
-                                            result.data.aValues,
-                                            result.data.bValues,
-                                            result.data.zValues || Array(ROWS).fill(""),
-                                            newDateValues,
-                                            result.data.deletedRows || [],
-                                            sourceSTTValues,
-                                            0,
-                                            0,
-                                            keepLastNRows,
-                                            undefined,
-                                            result.data.pageLabel || "",
-                                          ),
-                                        );
-                                      }
+                        return (
+                          <tr key={rowIndex}>
+                            <td className="data-cell fixed sticky-col stt-col">
+                              {String(displayRowNumber).padStart(3, "0")}
+                            </td>
+                            <td className="data-cell fixed date-col sticky-col">
+                              <input
+                                type="date"
+                                className="date-input"
+                                value={dateValues[rowIndex] || ""}
+                                onChange={async (e) => {
+                                  const newDateValues = [...dateValues];
+                                  newDateValues[rowIndex] = e.target.value;
+                                  setDateValues(newDateValues);
+                                  // Sync logic (kept original)
+                                  const syncPromises = [];
+                                  for (let i = 1; i <= 10; i++) {
+                                    const qId = `q${i}`;
+                                    const result = await loadPageData(qId);
+                                    if (result.success && result.data) {
+                                      syncPromises.push(
+                                        savePageData(
+                                          qId,
+                                          result.data.aValues,
+                                          result.data.bValues,
+                                          result.data.zValues ||
+                                            Array(ROWS).fill(""),
+                                          newDateValues,
+                                          result.data.deletedRows || [],
+                                          sourceSTTValues,
+                                          0,
+                                          0,
+                                          keepLastNRows,
+                                          undefined,
+                                          result.data.pageLabel || "",
+                                        ),
+                                      );
                                     }
-                                    await Promise.all(syncPromises);
-                                  }}
-                                />
-                              </td>
-                              <td className="data-cell fixed sticky-col dt-col" style={{ minWidth: "150px", width: "150px" }}>
-                                <input
-                                  type="text"
-                                  className="grid-input"
-                                  value={sourceSTTValues[rowIndex] || ""}
-                                  readOnly={true}
-                                  style={{ color: "#6f42c1", fontWeight: "bold" }}
-                                />
-                              </td>
-                              <td className={`data-cell fixed ${highlightedACells[rowIndex] ? "highlighted-t-cell" : ""}`} onClick={() => handleACellClick(rowIndex)}>
-                                <input type="text" className="grid-input" value={aValues[rowIndex] || ""} readOnly={true} style={{ color: highlightedACells[rowIndex] ? "white" : "#ef4444" }} />
-                              </td>
-                              <td className={`data-cell fixed ${highlightedBCells[rowIndex] ? "highlighted-t-cell" : ""}`} onClick={() => handleBCellClick(rowIndex)}>
-                                <input type="text" className="grid-input" value={bValues[rowIndex] || ""} readOnly={true} style={{ color: highlightedBCells[rowIndex] ? "white" : "#ef4444" }} />
-                              </td>
-                              {allTableData.map((tableData, tableIndex) => {
-                                const tValue = allTValues[tableIndex][rowIndex];
-                                return (
-                                  <td
-                                    key={tableIndex}
-                                    className={`data-cell fixed ${highlightedTCells[tableIndex]?.[rowIndex] ? "highlighted-t-cell" : ""}`}
-                                    onClick={() => handleTCellClick(tableIndex, rowIndex)}
-                                  >
-                                    <input type="text" className="grid-input" value={tValue} readOnly={true} style={{ pointerEvents: "none", color: "inherit" }} />
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
-                        });
-                      })()}
-                      {/* Unified Future Row */}
-                      <tr className="future-row">
-                        <td className="data-cell fixed future-cell sticky-col stt-col" style={{ opacity: 0.5, fontStyle: "italic", height: "50px" }}>&nbsp;</td>
-                        <td className="data-cell fixed future-cell sticky-col date-col" style={{ opacity: 0.5, fontStyle: "italic" }}>&nbsp;</td>
-                        <td className="data-cell fixed future-cell sticky-col dt-col" style={{ fontStyle: "italic" }}>&nbsp;</td>
-                        <td className="data-cell fixed future-cell" style={{ fontStyle: "italic" }}>&nbsp;</td>
-                        <td className="data-cell fixed future-cell" style={{ fontStyle: "italic" }}>&nbsp;</td>
-                        {allTableData.map((tableData, tableIndex) => {
-                          const futureRow = getFutureRow(tableData);
-                          const tValue = allTValues[tableIndex][allTValues[tableIndex].length - 1]; // This is not quite right for future row, but let's stick to the color logic
-                          // For future row, we don't have a value yet, or we use the predicted one.
-                          // The color in the T column for future row should probably just be generic or based on the prediction.
-                          return (
-                            <td key={tableIndex} className="data-cell fixed future-cell" style={{ fontStyle: "italic" }}>&nbsp;</td>
-                          );
-                        })}
-                      </tr>
-                    </tbody>
-                  </table>
-                ) : (
-                  <div className="empty-message">
-                    Đang tính toán T1-T80...
-                  </div>
-                )}
-              </div>
+                                  }
+                                  await Promise.all(syncPromises);
+                                }}
+                              />
+                            </td>
+                            <td
+                              className="data-cell fixed sticky-col dt-col"
+                              style={{ minWidth: "150px", width: "150px" }}
+                            >
+                              <input
+                                type="text"
+                                className="grid-input"
+                                value={sourceSTTValues[rowIndex] || ""}
+                                readOnly={true}
+                                style={{ color: "#6f42c1", fontWeight: "bold" }}
+                              />
+                            </td>
+                            <td
+                              className={`data-cell fixed ${highlightedACells[rowIndex] ? "highlighted-t-cell" : ""}`}
+                              onClick={() => handleACellClick(rowIndex)}
+                            >
+                              <input
+                                type="text"
+                                className="grid-input"
+                                value={aValues[rowIndex] || ""}
+                                readOnly={true}
+                                style={{
+                                  color: highlightedACells[rowIndex]
+                                    ? "white"
+                                    : "#ef4444",
+                                }}
+                              />
+                            </td>
+                            <td
+                              className={`data-cell fixed ${highlightedBCells[rowIndex] ? "highlighted-t-cell" : ""}`}
+                              onClick={() => handleBCellClick(rowIndex)}
+                            >
+                              <input
+                                type="text"
+                                className="grid-input"
+                                value={bValues[rowIndex] || ""}
+                                readOnly={true}
+                                style={{
+                                  color: highlightedBCells[rowIndex]
+                                    ? "white"
+                                    : "#ef4444",
+                                }}
+                              />
+                            </td>
+                            {allTableData.map((tableData, tableIndex) => {
+                              const tValue = allTValues[tableIndex][rowIndex];
+                              return (
+                                <td
+                                  key={tableIndex}
+                                  className={`data-cell fixed ${highlightedTCells[tableIndex]?.[rowIndex] ? "highlighted-t-cell" : ""}`}
+                                  onClick={() =>
+                                    handleTCellClick(tableIndex, rowIndex)
+                                  }
+                                >
+                                  <input
+                                    type="text"
+                                    className="grid-input"
+                                    value={tValue}
+                                    readOnly={true}
+                                    style={{
+                                      pointerEvents: "none",
+                                      color: "inherit",
+                                    }}
+                                  />
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      });
+                    })()}
+                    {/* Unified Future Row */}
+                    <tr className="future-row">
+                      <td
+                        className="data-cell fixed future-cell sticky-col stt-col"
+                        style={{
+                          opacity: 0.5,
+                          fontStyle: "italic",
+                          height: "50px",
+                        }}
+                      >
+                        &nbsp;
+                      </td>
+                      <td
+                        className="data-cell fixed future-cell sticky-col date-col"
+                        style={{ opacity: 0.5, fontStyle: "italic" }}
+                      >
+                        &nbsp;
+                      </td>
+                      <td
+                        className="data-cell fixed future-cell sticky-col dt-col"
+                        style={{ fontStyle: "italic" }}
+                      >
+                        &nbsp;
+                      </td>
+                      <td
+                        className="data-cell fixed future-cell"
+                        style={{ fontStyle: "italic" }}
+                      >
+                        &nbsp;
+                      </td>
+                      <td
+                        className="data-cell fixed future-cell"
+                        style={{ fontStyle: "italic" }}
+                      >
+                        &nbsp;
+                      </td>
+                      {allTableData.map((tableData, tableIndex) => {
+                        const futureRow = getFutureRow(tableData);
+                        const tValue =
+                          allTValues[tableIndex][
+                            allTValues[tableIndex].length - 1
+                          ]; // This is not quite right for future row, but let's stick to the color logic
+                        // For future row, we don't have a value yet, or we use the predicted one.
+                        // The color in the T column for future row should probably just be generic or based on the prediction.
+                        return (
+                          <td
+                            key={tableIndex}
+                            className="data-cell fixed future-cell"
+                            style={{ fontStyle: "italic" }}
+                          >
+                            &nbsp;
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              ) : (
+                <div className="empty-message">Đang tính toán T1-T80...</div>
+              )}
             </div>
           </div>
         </div>
+      </div>
 
       {/* Delete Modal */}
       {showDeleteModal && (
@@ -2244,7 +2320,6 @@ function App() {
           </div>
         </div>
       )}
-
 
       {/* Keep Last N Rows Settings Modal */}
       {showKeepLastNRowsSettingsModal && (
