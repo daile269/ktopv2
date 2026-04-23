@@ -455,18 +455,18 @@ function App() {
     });
   };
 
-  // Handle click vào ô T (Thông số) - highlight từng ô T (màu cam)
+  // Handle click vào ô T - 3 trạng thái: 0=thường, 1=vàng, 2=cam
   const handleTCellClick = (tableIndex, rowIndex) => {
     setHighlightedTCells((prev) => {
       const currentTable = prev[tableIndex] || {};
       const newTable = { ...currentTable };
-
-      if (newTable[rowIndex]) {
+      const current = newTable[rowIndex] || 0;
+      const next = (current + 1) % 3;
+      if (next === 0) {
         delete newTable[rowIndex];
       } else {
-        newTable[rowIndex] = true;
+        newTable[rowIndex] = next;
       }
-
       return {
         ...prev,
         [tableIndex]: newTable,
@@ -1640,7 +1640,13 @@ function App() {
                               return (
                                 <td
                                   key={tableIndex}
-                                  className={`data-cell fixed ${highlightedTCells[tableIndex]?.[rowIndex] ? "highlighted-t-cell" : ""}`}
+                                  className={`data-cell fixed ${
+                                    highlightedTCells[tableIndex]?.[rowIndex] === 1
+                                      ? "highlighted-t-yellow"
+                                      : highlightedTCells[tableIndex]?.[rowIndex] === 2
+                                      ? "highlighted-t-cell"
+                                      : ""
+                                  }`}
                                   onClick={() =>
                                     handleTCellClick(tableIndex, rowIndex)
                                   }
