@@ -31,8 +31,11 @@ function App() {
 
   const [highlightedCells, setHighlightedCells] = useState({});
   const [highlightedTCells, setHighlightedTCells] = useState({});
+  const [highlightedTColumns, setHighlightedTColumns] = useState({});
   const [highlightedACells, setHighlightedACells] = useState({});
   const [highlightedBCells, setHighlightedBCells] = useState({});
+  const [highlightedAColumn, setHighlightedAColumn] = useState(false);
+  const [highlightedBColumn, setHighlightedBColumn] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteOption, setDeleteOption] = useState("all");
   const [deleteDateFrom, setDeleteDateFrom] = useState("");
@@ -455,23 +458,29 @@ function App() {
     });
   };
 
-  // Handle click vào ô T - 3 trạng thái: 0=thường, 1=vàng, 2=cam
+  // Handle click vào ô T (từng ô) - toggle màu cam
   const handleTCellClick = (tableIndex, rowIndex) => {
     setHighlightedTCells((prev) => {
       const currentTable = prev[tableIndex] || {};
       const newTable = { ...currentTable };
-      const current = newTable[rowIndex] || 0;
-      const next = (current + 1) % 3;
-      if (next === 0) {
+      if (newTable[rowIndex]) {
         delete newTable[rowIndex];
       } else {
-        newTable[rowIndex] = next;
+        newTable[rowIndex] = true;
       }
       return {
         ...prev,
         [tableIndex]: newTable,
       };
     });
+  };
+
+  // Handle click vào header cột T - toggle cả cột màu vàng
+  const handleTColClick = (tableIndex) => {
+    setHighlightedTColumns((prev) => ({
+      ...prev,
+      [tableIndex]: !prev[tableIndex],
+    }));
   };
 
   const handleACellClick = (rowIndex) => {
@@ -498,11 +507,18 @@ function App() {
     });
   };
 
+  // Click header cột A/B - toggle cả cột màu vàng
+  const handleAColClick = () => setHighlightedAColumn((prev) => !prev);
+  const handleBColClick = () => setHighlightedBColumn((prev) => !prev);
+
   // Clear tất cả highlight
   const clearColumnHighlights = () => {
     setHighlightedTCells({});
+    setHighlightedTColumns({});
     setHighlightedACells({});
     setHighlightedBCells({});
+    setHighlightedAColumn(false);
+    setHighlightedBColumn(false);
     setHighlightedCells({});
   };
 
@@ -1499,17 +1515,29 @@ function App() {
                           />
                         </div>
                       </th>
-                      <th colSpan="1" className="group-header">
+                      <th
+                        colSpan="1"
+                        className={`group-header${highlightedAColumn ? " col-header-yellow" : ""}`}
+                        onClick={handleAColClick}
+                        style={{ cursor: "pointer" }}
+                      >
                         A
                       </th>
-                      <th colSpan="1" className="group-header">
+                      <th
+                        colSpan="1"
+                        className={`group-header${highlightedBColumn ? " col-header-yellow" : ""}`}
+                        onClick={handleBColClick}
+                        style={{ cursor: "pointer" }}
+                      >
                         B
                       </th>
                       {allTableData.map((_, tableIndex) => (
                         <th
                           key={tableIndex}
                           colSpan="1"
-                          className="group-header"
+                          className={`group-header${highlightedTColumns[tableIndex] ? " col-header-yellow" : ""}`}
+                          onClick={() => handleTColClick(tableIndex)}
+                          style={{ cursor: "pointer" }}
                         >
                           T{tableIndex + 1}
                         </th>
@@ -1531,10 +1559,27 @@ function App() {
                       >
                         STT_D.T
                       </th>
-                      <th className="col-header fixed">A</th>
-                      <th className="col-header fixed">B</th>
+                      <th
+                        className={`col-header fixed${highlightedAColumn ? " col-header-yellow" : ""}`}
+                        onClick={handleAColClick}
+                        style={{ cursor: "pointer" }}
+                      >
+                        A
+                      </th>
+                      <th
+                        className={`col-header fixed${highlightedBColumn ? " col-header-yellow" : ""}`}
+                        onClick={handleBColClick}
+                        style={{ cursor: "pointer" }}
+                      >
+                        B
+                      </th>
                       {allTableData.map((_, tableIndex) => (
-                        <th key={tableIndex} className="col-header fixed">
+                        <th
+                          key={tableIndex}
+                          className={`col-header fixed${highlightedTColumns[tableIndex] ? " col-header-yellow" : ""}`}
+                          onClick={() => handleTColClick(tableIndex)}
+                          style={{ cursor: "pointer" }}
+                        >
                           T{tableIndex + 1}
                         </th>
                       ))}
@@ -1604,7 +1649,13 @@ function App() {
                               />
                             </td>
                             <td
-                              className={`data-cell fixed ${highlightedACells[rowIndex] ? "highlighted-t-cell" : ""}`}
+                              className={`data-cell fixed ${
+                                highlightedACells[rowIndex]
+                                  ? "highlighted-t-cell"
+                                  : highlightedAColumn
+                                    ? "highlighted-t-yellow"
+                                    : ""
+                              }`}
                               onClick={() => handleACellClick(rowIndex)}
                             >
                               <input
@@ -1620,7 +1671,13 @@ function App() {
                               />
                             </td>
                             <td
-                              className={`data-cell fixed ${highlightedBCells[rowIndex] ? "highlighted-t-cell" : ""}`}
+                              className={`data-cell fixed ${
+                                highlightedBCells[rowIndex]
+                                  ? "highlighted-t-cell"
+                                  : highlightedBColumn
+                                    ? "highlighted-t-yellow"
+                                    : ""
+                              }`}
                               onClick={() => handleBCellClick(rowIndex)}
                             >
                               <input
@@ -1641,11 +1698,11 @@ function App() {
                                 <td
                                   key={tableIndex}
                                   className={`data-cell fixed ${
-                                    highlightedTCells[tableIndex]?.[rowIndex] === 1
-                                      ? "highlighted-t-yellow"
-                                      : highlightedTCells[tableIndex]?.[rowIndex] === 2
+                                    highlightedTCells[tableIndex]?.[rowIndex]
                                       ? "highlighted-t-cell"
-                                      : ""
+                                      : highlightedTColumns[tableIndex]
+                                        ? "highlighted-t-yellow"
+                                        : ""
                                   }`}
                                   onClick={() =>
                                     handleTCellClick(tableIndex, rowIndex)
@@ -1668,62 +1725,8 @@ function App() {
                         );
                       });
                     })()}
-                    {/* Unified Future Row */}
-                    <tr className="future-row">
-                      <td
-                        className="data-cell fixed future-cell sticky-col stt-col"
-                        style={{
-                          opacity: 0.5,
-                          fontStyle: "italic",
-                          height: "50px",
-                        }}
-                      >
-                        &nbsp;
-                      </td>
-                      <td
-                        className="data-cell fixed future-cell sticky-col date-col"
-                        style={{ opacity: 0.5, fontStyle: "italic" }}
-                      >
-                        &nbsp;
-                      </td>
-                      <td
-                        className="data-cell fixed future-cell sticky-col dt-col"
-                        style={{ fontStyle: "italic" }}
-                      >
-                        &nbsp;
-                      </td>
-                      <td
-                        className="data-cell fixed future-cell"
-                        style={{ fontStyle: "italic" }}
-                      >
-                        &nbsp;
-                      </td>
-                      <td
-                        className="data-cell fixed future-cell"
-                        style={{ fontStyle: "italic" }}
-                      >
-                        &nbsp;
-                      </td>
-                      {allTableData.map((tableData, tableIndex) => {
-                        const futureRow = getFutureRow(tableData);
-                        const tValue =
-                          allTValues[tableIndex][
-                            allTValues[tableIndex].length - 1
-                          ]; // This is not quite right for future row, but let's stick to the color logic
-                        // For future row, we don't have a value yet, or we use the predicted one.
-                        // The color in the T column for future row should probably just be generic or based on the prediction.
-                        return (
-                          <td
-                            key={tableIndex}
-                            className="data-cell fixed future-cell"
-                            style={{ fontStyle: "italic" }}
-                          >
-                            &nbsp;
-                          </td>
-                        );
-                      })}
-                    </tr>
                   </tbody>
+
                 </table>
               ) : (
                 <div className="empty-message">Đang tính toán T1-T80...</div>

@@ -497,6 +497,16 @@ body {
   background: transparent !important;
 }
 
+/* Header cột được chọn (vàng) - dùng selector đủ mạnh để override */
+.group-header.col-header-yellow,
+.col-header.col-header-yellow,
+.col-header.fixed.col-header-yellow {
+  background-color: #fdd835 !important;
+  background: #fdd835 !important;
+  color: #333 !important;
+  border-color: #f9a825 !important;
+}
+
 /* Highlight ô T - click 2 lần: Màu cam */
 .data-cell.highlighted-t-cell {
   background-color: #ff9800 !important; /* Cam */
