@@ -1257,7 +1257,7 @@ function App() {
                 marginRight: "10px",
               }}
             >
-              Bảng tính - APP Phần mềm chung
+              Bảng tính - APP {import.meta.env.VITE_APP_NAME}
             </button>
             <button
               onClick={() => setShowDeleteModal(true)}

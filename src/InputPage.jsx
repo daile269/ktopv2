@@ -962,7 +962,7 @@ function InputPage() {
                   marginRight: "10px",
                 }}
               >
-                Bảng thông - APP Phần mềm chung
+                Bảng thông - APP {import.meta.env.VITE_APP_NAME}
               </button>
               <label style={{ fontSize: "20px", fontWeight: "bold" }}>
                 📊 Dòng tồn tại:
