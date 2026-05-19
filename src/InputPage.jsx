@@ -10,7 +10,12 @@ const TaskRow = memo(
     isDeleted,
     isSelected,
     allQData,
+    highlightedRows,
+    highlightedCells,
+    highlightedColumns,
     onToggleSelect,
+    onToggleRowHighlight,
+    onToggleCellHighlight,
     onAChange,
     onBChange,
   }) => {
@@ -35,7 +40,15 @@ const TaskRow = memo(
             }}
           />
         </td>
-        <td style={{ textAlign: "center", fontSize: "20px" }}>
+        <td
+          className={highlightedRows[rowIndex] ? "highlighted-row" : ""}
+          onClick={() => !isDeleted && onToggleRowHighlight(rowIndex)}
+          style={{
+            textAlign: "center",
+            fontSize: "20px",
+            cursor: isDeleted ? "default" : "pointer",
+          }}
+        >
           {String(displayRowNumber).padStart(3, "0")}
         </td>
         {/* Ngày đã bị loại bỏ */}
@@ -44,13 +57,28 @@ const TaskRow = memo(
           const aV = isDeleted ? "" : qData?.aValues[rowIndex] || "";
           const bV = isDeleted ? "" : qData?.bValues[rowIndex] || "";
           const color = qIndex % 2 === 0 ? "#fff" : "#f1f1f1";
+          const aKey = `${qIndex}-a`;
+          const bKey = `${qIndex}-b`;
 
           return (
             <span key={qIndex} style={{ display: "contents" }}>
               <td
+                className={
+                  highlightedCells[rowIndex]?.[aKey]
+                    ? "highlighted-t-cell"
+                    : highlightedColumns[aKey]
+                      ? "highlighted-t-yellow"
+                      : highlightedRows[rowIndex]
+                        ? "highlighted-row"
+                        : ""
+                }
+                onClick={() =>
+                  !isDeleted && onToggleCellHighlight(rowIndex, aKey)
+                }
                 style={{
                   backgroundColor: color,
                   borderRight: "2px solid #999",
+                  cursor: isDeleted ? "default" : "pointer",
                 }}
               >
                 <input
@@ -58,13 +86,27 @@ const TaskRow = memo(
                   className="cell-input small"
                   value={aV}
                   onChange={(e) => onAChange(qIndex, rowIndex, e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
                   disabled={isDeleted}
                 />
               </td>
               <td
+                className={
+                  highlightedCells[rowIndex]?.[bKey]
+                    ? "highlighted-t-cell"
+                    : highlightedColumns[bKey]
+                      ? "highlighted-t-yellow"
+                      : highlightedRows[rowIndex]
+                        ? "highlighted-row"
+                        : ""
+                }
+                onClick={() =>
+                  !isDeleted && onToggleCellHighlight(rowIndex, bKey)
+                }
                 style={{
                   backgroundColor: color,
                   borderRight: "2px solid red",
+                  cursor: isDeleted ? "default" : "pointer",
                 }}
               >
                 <input
@@ -72,13 +114,22 @@ const TaskRow = memo(
                   className="cell-input small"
                   value={bV}
                   onChange={(e) => onBChange(qIndex, rowIndex, e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
                   disabled={isDeleted}
                 />
               </td>
             </span>
           );
         })}
-        <td style={{ textAlign: "center", fontSize: "20px" }}>
+        <td
+          className={highlightedRows[rowIndex] ? "highlighted-row" : ""}
+          onClick={() => !isDeleted && onToggleRowHighlight(rowIndex)}
+          style={{
+            textAlign: "center",
+            fontSize: "20px",
+            cursor: isDeleted ? "default" : "pointer",
+          }}
+        >
           {String(displayRowNumber).padStart(3, "0")}
         </td>
         <td
@@ -128,6 +179,9 @@ function InputPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState("");
   const [selectedRows, setSelectedRows] = useState({}); // { rowIndex: true }
+  const [highlightedRows, setHighlightedRows] = useState({});
+  const [highlightedCells, setHighlightedCells] = useState({});
+  const [highlightedColumns, setHighlightedColumns] = useState({});
   const [showAddModal, setShowAddModal] = useState(false);
   const [isAddingToCalc, setIsAddingToCalc] = useState(false);
   const [transferDate, setTransferDate] = useState(() => {
@@ -389,6 +443,56 @@ function InputPage() {
       else next[rowIndex] = true;
       return next;
     });
+  }, []);
+
+  const handleToggleRowHighlight = useCallback((rowIndex) => {
+    setHighlightedRows((prev) => ({
+      ...prev,
+      [rowIndex]: !prev[rowIndex],
+    }));
+  }, []);
+
+  const handleToggleCellHighlight = useCallback((rowIndex, columnKey) => {
+    setHighlightedCells((prev) => {
+      const currentRow = prev[rowIndex] || {};
+      const nextRow = { ...currentRow };
+      if (nextRow[columnKey]) {
+        delete nextRow[columnKey];
+      } else {
+        nextRow[columnKey] = true;
+      }
+
+      return {
+        ...prev,
+        [rowIndex]: nextRow,
+      };
+    });
+  }, []);
+
+  const handleToggleColumnHighlight = useCallback((columnKey) => {
+    setHighlightedColumns((prev) => ({
+      ...prev,
+      [columnKey]: !prev[columnKey],
+    }));
+  }, []);
+
+  const handleToggleQHighlight = useCallback((qIndex) => {
+    const aKey = `${qIndex}-a`;
+    const bKey = `${qIndex}-b`;
+    setHighlightedColumns((prev) => {
+      const shouldHighlight = !prev[aKey] || !prev[bKey];
+      return {
+        ...prev,
+        [aKey]: shouldHighlight,
+        [bKey]: shouldHighlight,
+      };
+    });
+  }, []);
+
+  const clearTableHighlights = useCallback(() => {
+    setHighlightedRows({});
+    setHighlightedCells({});
+    setHighlightedColumns({});
   }, []);
 
   const handleZChange = useCallback((rIdx, val) => {
@@ -1047,6 +1151,18 @@ function InputPage() {
               </button>
               <button
                 className="toolbar-btn"
+                onClick={clearTableHighlights}
+                style={{
+                  fontSize: "20px",
+                  background: "#6c757d",
+                  color: "white",
+                  border: "none",
+                }}
+              >
+                X màu d.c
+              </button>
+              <button
+                className="toolbar-btn"
                 onClick={() => (window.location.href = "/q1")}
                 style={{
                   fontSize: "20px",
@@ -1101,15 +1217,22 @@ function InputPage() {
                     // Màu background: Q lẻ màu ghi nhạt, Q chẵn màu xanh nhạt
                     const color = qIndex % 2 === 0 ? "#e0e0e0" : "#e3f2fd"; // Q lẻ (index 0,2,4,6,8) = ghi, Q chẵn (index 1,3,5,7,9) = xanh
 
+                    const isQHighlighted =
+                      highlightedColumns[`${qIndex}-a`] &&
+                      highlightedColumns[`${qIndex}-b`];
+
                     return (
                       <th
                         key={qIndex}
                         colSpan="2"
+                        className={isQHighlighted ? "col-header-yellow" : ""}
+                        onClick={() => handleToggleQHighlight(qIndex)}
                         style={{
                           backgroundColor: color,
                           borderLeft: "2px solid red",
                           borderRight: "2px solid red",
                           borderBottom: "2px solid black",
+                          cursor: "pointer",
                         }}
                       >
                         Q{qIndex + 1}
@@ -1139,21 +1262,39 @@ function InputPage() {
                       <>
                         <th
                           key={`a-${qIndex}`}
+                          className={
+                            highlightedColumns[`${qIndex}-a`]
+                              ? "col-header-yellow"
+                              : ""
+                          }
+                          onClick={() =>
+                            handleToggleColumnHighlight(`${qIndex}-a`)
+                          }
                           style={{
                             backgroundColor: color,
                             borderLeft: "2px solid red",
                             borderRight: "2px solid #999",
                             minWidth: "60px",
+                            cursor: "pointer",
                           }}
                         >
                           A
                         </th>
                         <th
                           key={`b-${qIndex}`}
+                          className={
+                            highlightedColumns[`${qIndex}-b`]
+                              ? "col-header-yellow"
+                              : ""
+                          }
+                          onClick={() =>
+                            handleToggleColumnHighlight(`${qIndex}-b`)
+                          }
                           style={{
                             backgroundColor: color,
                             borderRight: "2px solid red",
                             minWidth: "60px",
+                            cursor: "pointer",
                           }}
                         >
                           B
@@ -1172,7 +1313,12 @@ function InputPage() {
                     isDeleted={deletedRows[rowIndex]}
                     isSelected={!!selectedRows[rowIndex]}
                     allQData={allQData}
+                    highlightedRows={highlightedRows}
+                    highlightedCells={highlightedCells}
+                    highlightedColumns={highlightedColumns}
                     onToggleSelect={handleToggleSelect}
+                    onToggleRowHighlight={handleToggleRowHighlight}
+                    onToggleCellHighlight={handleToggleCellHighlight}
                     onAChange={handleAChange}
                     onBChange={handleBChange}
                   />
