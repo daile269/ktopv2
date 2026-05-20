@@ -440,11 +440,13 @@ function InputPage() {
   // Helper function to format date to DD/MM/YYYY
   // formatDateSimple removed
 
-  const handleToggleSelect = useCallback((rowIndex) => {
-    setSelectedRows((prev) => {
-      if (prev.includes(rowIndex)) return prev.filter((r) => r !== rowIndex);
-      return [...prev, rowIndex];
-    });
+  const handleToggleSelect = useCallback((rowIndex, currentQueue) => {
+    const count = currentQueue.filter((item) => item.rowIndex === rowIndex).length;
+    if (count >= MAX_PER_ROW) {
+      alert(`⚠️ Dòng ${String(rowIndex).padStart(3, "0")} đã đạt tối đa ${MAX_PER_ROW} lần!`);
+      return;
+    }
+    setQueue((prev) => [...prev, { rowIndex, displaySTT: String(rowIndex).padStart(3, "0") }]);
   }, []);
 
   const handleToggleRowHighlight = useCallback((rowIndex) => {
@@ -771,13 +773,10 @@ function InputPage() {
   };
 
   const handleConfirmAddToApp = async () => {
-    // Dùng queue nếu có, fallback về selectedIndices theo thứ tự tự nhiên
-    const indicesToAppend = queue.length > 0
-      ? queue.map((item) => item.rowIndex)
-      : [...selectedRows];
+    const indicesToAppend = queue.map((item) => item.rowIndex);
 
     if (indicesToAppend.length === 0) {
-      alert("⚠️ Vui lòng thêm dòng vào hàng đợi hoặc chọn ít nhất một dòng!");
+      alert("⚠️ Vui lòng thêm dòng vào hàng đợi trước!");
       return;
     }
 
@@ -1109,7 +1108,7 @@ function InputPage() {
               >
                 Bảng thông - APP {import.meta.env.VITE_APP_NAME}
               </button>
-              <label style={{ fontSize: "20px", fontWeight: "bold" }}>
+              <label style={{ fontSize: "30px", fontWeight: "bold" }}>
                 📊 Dòng tồn tại:
               </label>
               <input
@@ -1122,7 +1121,7 @@ function InputPage() {
                 style={{
                   width: "80px",
                   padding: "6px",
-                  fontSize: "20px",
+                  fontSize: "30px",
                   border: "1px solid #007bff",
                   borderRadius: "4px",
                   textAlign: "center",
@@ -1132,7 +1131,7 @@ function InputPage() {
                 className="toolbar-btn"
                 onClick={handleKeepLastNRows}
                 style={{
-                  fontSize: "20px",
+                  fontSize: "30px",
                   background: "#ffc107",
                   color: "#212529",
                   border: "none",
@@ -1158,7 +1157,7 @@ function InputPage() {
                 className="toolbar-btn"
                 onClick={handleSave}
                 style={{
-                  fontSize: "20px",
+                  fontSize: "30px",
                   background: "#28a745",
                   color: "white",
                   border: "none",
@@ -1170,7 +1169,7 @@ function InputPage() {
                 className="toolbar-btn"
                 onClick={() => setShowDeleteModal(true)}
                 style={{
-                  fontSize: "20px",
+                  fontSize: "30px",
                   background: "#dc3545",
                   color: "white",
                   border: "none",
@@ -1180,21 +1179,9 @@ function InputPage() {
               </button>
               <button
                 className="toolbar-btn"
-                onClick={handleAddToQueue}
-                style={{
-                  fontSize: "20px",
-                  background: "#fd7e14",
-                  color: "white",
-                  border: "none",
-                }}
-              >
-                📋 Thêm vào hàng đợi {queue.length > 0 ? `(${queue.length})` : ""}
-              </button>
-              <button
-                className="toolbar-btn"
                 onClick={() => setShowAddModal(true)}
                 style={{
-                  fontSize: "20px",
+                  fontSize: "30px",
                   background: "#6f42c1",
                   color: "white",
                   border: "none",
@@ -1206,7 +1193,7 @@ function InputPage() {
                 className="toolbar-btn"
                 onClick={clearTableHighlights}
                 style={{
-                  fontSize: "20px",
+                  fontSize: "30px",
                   background: "#6c757d",
                   color: "white",
                   border: "none",
@@ -1218,7 +1205,7 @@ function InputPage() {
                 className="toolbar-btn"
                 onClick={() => (window.location.href = "/q1")}
                 style={{
-                  fontSize: "20px",
+                  fontSize: "30px",
                   background: "#28a745",
                   color: "white",
                   border: "none",
@@ -1255,53 +1242,68 @@ function InputPage() {
                 gap: "8px",
               }}
             >
-              <span style={{ fontSize: "18px", fontWeight: "bold", color: "#fd7e14", marginRight: "8px" }}>
+              <span style={{ fontSize: "30px", fontWeight: "bold", color: "black", marginRight: "8px" }}>
                 📋 Hàng đợi:
               </span>
-              {queue.map((item, qIdx) => (
-                <span key={qIdx} style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                  {qIdx > 0 && (
-                    <span style={{ fontSize: "18px", fontWeight: "bold", color: "#fd7e14" }}>--&gt;</span>
-                  )}
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "4px",
-                      background: "#fd7e14",
-                      color: "white",
-                      borderRadius: "6px",
-                      padding: "4px 10px",
-                      fontSize: "18px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {item.displaySTT}
-                    <button
-                      onClick={() => handleRemoveFromQueue(qIdx)}
+              {queue.map((item, qIdx) => {
+                const luot = qIdx + 1; // thứ tự tổng
+                return (
+                  <span key={qIdx} style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                    {qIdx > 0 && (
+                      <span style={{ fontSize: "22px", fontWeight: "bold", color: "#fd7e14" }}>--&gt;</span>
+                    )}
+                    <span
                       style={{
-                        background: "none",
-                        border: "none",
-                        color: "white",
-                        cursor: "pointer",
-                        fontSize: "16px",
-                        padding: "0 0 0 4px",
-                        lineHeight: 1,
+                        display: "inline-flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        background: "#fd7e14",
+                        color: "black",
+                        borderRadius: "6px",
+                        padding: "4px 10px",
+                        fontWeight: "bold",
+                        lineHeight: 1.2,
+                        position: "relative",
                       }}
-                      title="Xóa khỏi hàng đợi"
                     >
-                      ×
-                    </button>
+                      <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <span style={{ fontSize: "30px" }}>{item.displaySTT}</span>
+                        <button
+                          onClick={() => handleRemoveFromQueue(qIdx)}
+                          style={{
+                            background: "#dc3545",
+                            border: "none",
+                            color: "white",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            width: "20px",
+                            height: "20px",
+                            borderRadius: "50%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: 0,
+                            lineHeight: 1,
+                          }}
+                          title="Xóa khỏi hàng đợi"
+                        >
+                          ×
+                        </button>
+                      </span>
+                      <span style={{ fontSize: "30px", fontWeight: "normal" }}>
+                        lượt {luot}
+                      </span>
+                    </span>
                   </span>
-                </span>
-              ))}
+                );
+              })}
               <button
                 onClick={handleClearQueue}
                 style={{
                   marginLeft: "8px",
-                  fontSize: "16px",
+                  fontSize: "30px",
                   background: "#dc3545",
-                  color: "white",
+                  color: "black",
                   border: "none",
                   borderRadius: "6px",
                   padding: "4px 12px",
@@ -1442,7 +1444,7 @@ function InputPage() {
                     highlightedRows={highlightedRows}
                     highlightedCells={highlightedCells}
                     highlightedColumns={highlightedColumns}
-                    onToggleSelect={handleToggleSelect}
+                    onToggleSelect={(rowIndex) => handleToggleSelect(rowIndex, queue)}
                     onToggleRowHighlight={handleToggleRowHighlight}
                     onToggleCellHighlight={handleToggleCellHighlight}
                     onAChange={handleAChange}
@@ -1539,9 +1541,7 @@ function InputPage() {
                         </span>
                       </span>
                     ))
-                  : selectedRows.length > 0
-                    ? formatSttRanges(selectedRows.map(String))
-                    : "Chưa có hàng đợi hoặc dòng được chọn!"}
+                  : "Chưa có dòng nào trong hàng đợi!"}
               </div>
             </div>
 
@@ -1603,7 +1603,7 @@ function InputPage() {
               <button
                 onClick={handleConfirmAddToApp}
                 disabled={
-                  isAddingToCalc || (queue.length === 0 && selectedRows.length === 0)
+                  isAddingToCalc || queue.length === 0
                 }
                 style={{
                   padding: "10px 20px",
