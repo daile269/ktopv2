@@ -504,22 +504,25 @@ function InputPage() {
       alert("⚠️ Vui lòng chọn ít nhất một dòng!");
       return;
     }
-    let blocked = false;
+
+    // Kiểm tra trước khi set
+    for (const idx of selectedIndices) {
+      const countInQueue = queue.filter((item) => item.rowIndex === idx).length;
+      if (countInQueue >= MAX_PER_ROW) {
+        alert(`⚠️ Dòng ${String(idx).padStart(3, "0")} đã đạt tối đa ${MAX_PER_ROW} lần trong hàng đợi!`);
+        return;
+      }
+    }
+
     setQueue((prev) => {
       const next = [...prev];
       for (const idx of selectedIndices) {
-        const countInQueue = next.filter((item) => item.rowIndex === idx).length;
-        if (countInQueue >= MAX_PER_ROW) {
-          alert(`⚠️ Dòng ${String(idx).padStart(3, "0")} đã đạt tối đa ${MAX_PER_ROW} lần trong hàng đợi!`);
-          blocked = true;
-          return prev;
-        }
         next.push({ rowIndex: idx, displaySTT: String(idx).padStart(3, "0") });
       }
       return next;
     });
-    if (!blocked) setSelectedRows([]);
-  }, [selectedRows]);
+    setSelectedRows([]);
+  }, [selectedRows, queue]);
 
   const handleRemoveFromQueue = useCallback((queueIndex) => {
     setQueue((prev) => prev.filter((_, i) => i !== queueIndex));
