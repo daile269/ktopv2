@@ -9,6 +9,7 @@ const TaskRow = memo(
     displayRowNumber,
     isDeleted,
     isSelected,
+    isLastAdded,
     allQData,
     highlightedRows,
     highlightedCells,
@@ -20,7 +21,10 @@ const TaskRow = memo(
     onBChange,
   }) => {
     return (
-      <tr className={isSelected ? "selected-draft-row" : ""}>
+      <tr
+        className={isSelected ? "selected-draft-row" : ""}
+        style={isLastAdded ? { backgroundColor: "#ffe8cc", borderTop: "1px solid #fd7e14", borderBottom: "1px solid #fd7e14" } : {}}
+      >
         <td
           style={{
             textAlign: "center",
@@ -179,6 +183,7 @@ function InputPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState("");
   const [selectedRows, setSelectedRows] = useState([]); // mảng giữ thứ tự click
+  const [lastAddedRow, setLastAddedRow] = useState(null);
   const [highlightedRows, setHighlightedRows] = useState({});
   const [highlightedCells, setHighlightedCells] = useState({});
   const [highlightedColumns, setHighlightedColumns] = useState({});
@@ -205,7 +210,6 @@ function InputPage() {
 
   // Queue state: mảng các { rowIndex, displaySTT }
   const [queue, setQueue] = useState([]);
-  const MAX_PER_ROW = 4;
 
   // Load data từ master_draft
   useEffect(() => {
@@ -441,12 +445,9 @@ function InputPage() {
   // formatDateSimple removed
 
   const handleToggleSelect = useCallback((rowIndex, currentQueue) => {
-    const count = currentQueue.filter((item) => item.rowIndex === rowIndex).length;
-    if (count >= MAX_PER_ROW) {
-      alert(`⚠️ Dòng ${String(rowIndex).padStart(3, "0")} đã đạt tối đa ${MAX_PER_ROW} lần!`);
-      return;
-    }
     setQueue((prev) => [...prev, { rowIndex, displaySTT: String(rowIndex).padStart(3, "0") }]);
+    setLastAddedRow(rowIndex);
+    setHighlightedRows({ [rowIndex]: true }); // highlight hàng vừa tick, clear hàng cũ
   }, []);
 
   const handleToggleRowHighlight = useCallback((rowIndex) => {
@@ -507,15 +508,7 @@ function InputPage() {
       return;
     }
 
-    // Kiểm tra trước khi set
-    for (const idx of selectedIndices) {
-      const countInQueue = queue.filter((item) => item.rowIndex === idx).length;
-      if (countInQueue >= MAX_PER_ROW) {
-        alert(`⚠️ Dòng ${String(idx).padStart(3, "0")} đã đạt tối đa ${MAX_PER_ROW} lần trong hàng đợi!`);
-        return;
-      }
-    }
-
+    // Kiểm tra trước khi set đã bỏ giới hạn MAX_PER_ROW
     setQueue((prev) => {
       const next = [...prev];
       for (const idx of selectedIndices) {
@@ -1440,6 +1433,7 @@ function InputPage() {
                     displayRowNumber={idx}
                     isDeleted={deletedRows[rowIndex]}
                     isSelected={selectedRows.includes(rowIndex)}
+                    isLastAdded={lastAddedRow === rowIndex}
                     allQData={allQData}
                     highlightedRows={highlightedRows}
                     highlightedCells={highlightedCells}
@@ -1727,6 +1721,13 @@ function InputPage() {
         .selected-draft-row td {
           border-top: 1px solid #6f42c1;
           border-bottom: 1px solid #6f42c1;
+        }
+        .last-added-row {
+          background-color: #ffe8cc !important;
+        }
+        .last-added-row td {
+          border-top: 1px solid #fd7e14;
+          border-bottom: 1px solid #fd7e14;
         }
         .modal-body {
           padding: 20px 0;
