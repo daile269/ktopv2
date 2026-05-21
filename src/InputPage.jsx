@@ -54,7 +54,7 @@ const TaskRow = memo(
             cursor: isDeleted ? "default" : "pointer",
           }}
         >
-          {String(displayRowNumber).padStart(3, "0")}
+          {displayRowNumber + 1}
         </td>
         {/* Ngày đã bị loại bỏ */}
         {Array.from({ length: 10 }).map((_, qIndex) => {
@@ -139,7 +139,7 @@ const TaskRow = memo(
             cursor: isDeleted ? "default" : "pointer",
           }}
         >
-          {String(displayRowNumber).padStart(3, "0")}
+          {displayRowNumber + 1}
         </td>
         <td
           className={isLastAdded ? "last-added-row" : highlightedRows[rowIndex] ? "highlighted-row" : ""}
@@ -167,9 +167,9 @@ const TaskRow = memo(
 );
 
 function InputPage() {
-  const MIN_ROWS = 126; // Minimum rows
-  const [keepLastNRows, setKeepLastNRows] = useState(126);
-  const ROWS = Math.max(MIN_ROWS, keepLastNRows); // Dynamic: min 126, or larger from DB
+  const MIN_ROWS = 125; // Minimum rows
+  const [keepLastNRows, setKeepLastNRows] = useState(125);
+  const ROWS = Math.max(MIN_ROWS, keepLastNRows); // Dynamic: min 125, or larger from DB
 
   // State cho A, B của 10Q
   const [allQData, setAllQData] = useState(
@@ -238,7 +238,7 @@ function InputPage() {
         setDateValues(d.dateValues || Array(ROWS).fill(""));
         setZValues(d.zValues || Array(ROWS).fill(""));
         setDeletedRows(d.deletedRows || Array(ROWS).fill(false));
-        setKeepLastNRows(d.keepLastNRows || 126);
+        setKeepLastNRows(Math.min(d.keepLastNRows || 125, 125));
         setPurpleRangeFrom(d.purpleRangeFrom || 0);
         setPurpleRangeTo(d.purpleRangeTo || 0);
       } else {
@@ -259,7 +259,7 @@ function InputPage() {
     };
 
     loadData();
-  }, [ROWS]);
+  }, []);
 
   // Helper để format STT thành dãy (VD: 049-051, 055)
   const formatSttRanges = (sttArray) => {
@@ -275,8 +275,8 @@ function InputPage() {
       } else {
         ranges.push(
           start === end
-            ? String(start).padStart(3, "0")
-            : `${String(start).padStart(3, "0")}-${String(end).padStart(3, "0")}`,
+            ? String(start)
+            : `${String(start)}-${String(end)}`,
         );
         start = sorted[i];
         end = sorted[i];
@@ -284,8 +284,8 @@ function InputPage() {
     }
     ranges.push(
       start === end
-        ? String(start).padStart(3, "0")
-        : `${String(start).padStart(3, "0")}-${String(end).padStart(3, "0")}`,
+        ? String(start)
+        : `${String(start)}-${String(end)}`,
     );
     return "STT: " + ranges.join(", ");
   };
@@ -410,12 +410,35 @@ function InputPage() {
       zValues,
       dateValues,
       newDeletedRows,
-      null, // sourceSTTValues
+      null,
       purpleRangeFrom,
       purpleRangeTo,
       n,
       allQData,
     );
+
+    // Sync keepLastNRows sang Q1-Q10
+    for (let i = 1; i <= 10; i++) {
+      const qId = `q${i}`;
+      const qResult = await loadPageData(qId);
+      if (qResult.success && qResult.data) {
+        await savePageData(
+          qId,
+          qResult.data.aValues,
+          qResult.data.bValues,
+          qResult.data.zValues || [],
+          qResult.data.dateValues || [],
+          newDeletedRows,
+          qResult.data.sourceSTTValues || [],
+          qResult.data.purpleRangeFrom || 0,
+          qResult.data.purpleRangeTo || 0,
+          n,
+          undefined,
+          qResult.data.pageLabel || "",
+        );
+      }
+    }
+
     setSaveStatus("✅ Đã giữ " + n + " dòng cuối!");
     alert(`✅ Đã thực hiện giữ lại ${n} dòng cuối cùng!`);
     setTimeout(() => setSaveStatus(""), 2000);
@@ -451,7 +474,7 @@ function InputPage() {
   // formatDateSimple removed
 
   const handleToggleSelect = useCallback((rowIndex, currentQueue) => {
-    setQueue((prev) => [...prev, { rowIndex, displaySTT: String(rowIndex).padStart(3, "0") }]);
+    setQueue((prev) => [...prev, { rowIndex, displaySTT: String(rowIndex + 1) }]);
     setLastAddedRow(rowIndex);
   }, []);
 
@@ -518,7 +541,7 @@ function InputPage() {
     setQueue((prev) => {
       const next = [...prev];
       for (const idx of selectedIndices) {
-        next.push({ rowIndex: idx, displaySTT: String(idx).padStart(3, "0") });
+        next.push({ rowIndex: idx, displaySTT: String(idx + 1) });
       }
       return next;
     });
@@ -878,7 +901,7 @@ function InputPage() {
           activeZ.push(""); // Không chép cột Z sang bảng tính
           activeD.push(transferDate);
           activeDel.push(false);
-          activeSourceSTT.push(String(idx).padStart(3, "0"));
+          activeSourceSTT.push(String(idx + 1));
         });
 
         // Consolidate at top by padding at the bottom (push)
@@ -918,7 +941,7 @@ function InputPage() {
 
       // LƯU LẠI LỊCH SỬ LẦN VỪA CHUYỂN
       const batchInfo = {
-        stts: indicesToAppend.map((idx) => String(idx).padStart(3, "0")),
+        stts: indicesToAppend.map((idx) => String(idx + 1)),
         zValues: indicesToAppend.map((idx) => zValues[idx] || ""),
         date: transferDate,
       };

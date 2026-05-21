@@ -41,7 +41,7 @@ const pageSchema = new mongoose.Schema({
   },
   keepLastNRows: {
     type: Number,
-    default: 126
+    default: 125
   },
   allQData: {
     type: [{

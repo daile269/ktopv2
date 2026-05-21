@@ -6,7 +6,7 @@ import InputPage from "./InputPage";
 
 function App() {
   const TOTAL_TABLES = 80;
-  const ROWS = 126;
+  const ROWS = 125;
 
   const [allTableData, setAllTableData] = useState(
     Array(TOTAL_TABLES)
@@ -18,16 +18,16 @@ function App() {
       .fill(null)
       .map(() => Array(ROWS).fill("")),
   );
-  const [dateValues, setDateValues] = useState(Array(126).fill(""));
-  const [sourceSTTValues, setSourceSTTValues] = useState(Array(126).fill(""));
+  const [dateValues, setDateValues] = useState(Array(ROWS).fill(""));
+  const [sourceSTTValues, setSourceSTTValues] = useState(Array(ROWS).fill(""));
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
 
-  const [aValues, setAValues] = useState(Array(126).fill(""));
-  const [bValues, setBValues] = useState(Array(126).fill(""));
+  const [aValues, setAValues] = useState(Array(ROWS).fill(""));
+  const [bValues, setBValues] = useState(Array(ROWS).fill(""));
 
   const [highlightedCells, setHighlightedCells] = useState({});
   const [highlightedTCells, setHighlightedTCells] = useState({});
@@ -50,8 +50,8 @@ function App() {
   const [newRowZ, setNewRowZ] = useState("");
   const [isAddingRow, setIsAddingRow] = useState(false);
   const [keepLastNRows, setKeepLastNRows] = useState("");
-  const [deletedRows, setDeletedRows] = useState(Array(126).fill(false));
-  const [zValues, setZValues] = useState(Array(126).fill(""));
+  const [deletedRows, setDeletedRows] = useState(Array(ROWS).fill(false));
+  const [zValues, setZValues] = useState(Array(ROWS).fill(""));
   const [showDeleteFirstRowModal, setShowDeleteFirstRowModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showKeepLastNRowsModal, setShowKeepLastNRowsModal] = useState(false);
@@ -1599,7 +1599,7 @@ function App() {
                   </thead>
                   <tbody>
                     {(() => {
-                      let displayRowNumber = -1;
+                      let displayRowNumber = 0;
                       // Use the first table's data length to map rows
                       return allTableData[0].map((_, rowIndex) => {
                         if (deletedRows[rowIndex]) return null;
@@ -1614,7 +1614,7 @@ function App() {
                               onClick={() => handleRowClick(rowIndex)}
                               style={{ cursor: "pointer" }}
                             >
-                              {String(displayRowNumber).padStart(3, "0")}
+                              {displayRowNumber}
                             </td>
                             <td
                               className={`data-cell fixed date-col sticky-col ${
