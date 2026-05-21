@@ -23,9 +23,10 @@ const TaskRow = memo(
     return (
       <tr
         className={isSelected ? "selected-draft-row" : ""}
-        style={isLastAdded ? { backgroundColor: "#ffe8cc", borderTop: "1px solid #fd7e14", borderBottom: "1px solid #fd7e14" } : {}}
+        style={isLastAdded ? { backgroundColor: "#ffe8cc" } : {}}
       >
         <td
+          className={isLastAdded ? "last-added-row" : highlightedRows[rowIndex] ? "highlighted-row" : ""}
           style={{
             textAlign: "center",
             width: "60px !important",
@@ -45,7 +46,7 @@ const TaskRow = memo(
           />
         </td>
         <td
-          className={highlightedRows[rowIndex] ? "highlighted-row" : ""}
+          className={isLastAdded ? "last-added-row" : highlightedRows[rowIndex] ? "highlighted-row" : ""}
           onClick={() => !isDeleted && onToggleRowHighlight(rowIndex)}
           style={{
             textAlign: "center",
@@ -74,7 +75,9 @@ const TaskRow = memo(
                       ? "highlighted-t-yellow"
                       : highlightedRows[rowIndex]
                         ? "highlighted-row"
-                        : ""
+                        : isLastAdded
+                          ? "last-added-row"
+                          : ""
                 }
                 onClick={() =>
                   !isDeleted && onToggleCellHighlight(rowIndex, aKey)
@@ -102,7 +105,9 @@ const TaskRow = memo(
                       ? "highlighted-t-yellow"
                       : highlightedRows[rowIndex]
                         ? "highlighted-row"
-                        : ""
+                        : isLastAdded
+                          ? "last-added-row"
+                          : ""
                 }
                 onClick={() =>
                   !isDeleted && onToggleCellHighlight(rowIndex, bKey)
@@ -126,7 +131,7 @@ const TaskRow = memo(
           );
         })}
         <td
-          className={highlightedRows[rowIndex] ? "highlighted-row" : ""}
+          className={isLastAdded ? "last-added-row" : highlightedRows[rowIndex] ? "highlighted-row" : ""}
           onClick={() => !isDeleted && onToggleRowHighlight(rowIndex)}
           style={{
             textAlign: "center",
@@ -137,6 +142,7 @@ const TaskRow = memo(
           {String(displayRowNumber).padStart(3, "0")}
         </td>
         <td
+          className={isLastAdded ? "last-added-row" : highlightedRows[rowIndex] ? "highlighted-row" : ""}
           style={{
             textAlign: "center",
             width: "80px !important",
@@ -447,7 +453,6 @@ function InputPage() {
   const handleToggleSelect = useCallback((rowIndex, currentQueue) => {
     setQueue((prev) => [...prev, { rowIndex, displaySTT: String(rowIndex).padStart(3, "0") }]);
     setLastAddedRow(rowIndex);
-    setHighlightedRows({ [rowIndex]: true }); // highlight hàng vừa tick, clear hàng cũ
   }, []);
 
   const handleToggleRowHighlight = useCallback((rowIndex) => {
@@ -498,6 +503,7 @@ function InputPage() {
     setHighlightedRows({});
     setHighlightedCells({});
     setHighlightedColumns({});
+    setLastAddedRow(null);
   }, []);
 
   // Queue handlers
@@ -1250,42 +1256,45 @@ function InputPage() {
                         display: "inline-flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        background: "#fd7e14",
+                        background: "#b7e4b7",
                         color: "black",
                         borderRadius: "6px",
-                        padding: "4px 10px",
-                        fontWeight: "bold",
-                        lineHeight: 1.2,
+                        overflow: "visible",
+                        fontWeight: "normal",
+                        lineHeight: 1.4,
                         position: "relative",
+                        padding: "8px 14px",
+                        border: "2px solid #fd7e14",
+                        minWidth: "60px",
                       }}
                     >
-                      <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <span style={{ fontSize: "30px" }}>{item.displaySTT}</span>
-                        <button
-                          onClick={() => handleRemoveFromQueue(qIdx)}
-                          style={{
-                            background: "#dc3545",
-                            border: "none",
-                            color: "white",
-                            cursor: "pointer",
-                            fontSize: "14px",
-                            width: "20px",
-                            height: "20px",
-                            borderRadius: "50%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            padding: 0,
-                            lineHeight: 1,
-                          }}
-                          title="Xóa khỏi hàng đợi"
-                        >
-                          ×
-                        </button>
-                      </span>
-                      <span style={{ fontSize: "30px", fontWeight: "normal" }}>
-                        lượt {luot}
-                      </span>
+                      <button
+                        onClick={() => handleRemoveFromQueue(qIdx)}
+                        style={{
+                          position: "absolute",
+                          top: "-10px",
+                          right: "-10px",
+                          background: "#dc3545",
+                          border: "none",
+                          color: "white",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                          width: "22px",
+                          height: "22px",
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: 0,
+                          lineHeight: 1,
+                          zIndex: 1,
+                        }}
+                        title="Xóa khỏi hàng đợi"
+                      >
+                        ×
+                      </button>
+                      <span style={{ fontSize: "30px" }}>{item.displaySTT}</span>
+                      <span style={{ fontSize: "30px" }}>L{luot}</span>
                     </span>
                   </span>
                 );
