@@ -74,6 +74,7 @@ function App() {
 
   const pathname = window.location.pathname.slice(1);
   const pageId = pathname || "q1";
+  const formatSTT = (value) => String(value).padStart(2, "0");
 
   // Helper function to format date to Vietnamese
   const formatDateToVietnamese = (dateString) => {
@@ -1603,6 +1604,7 @@ function App() {
                       // Use the first table's data length to map rows
                       return allTableData[0].map((_, rowIndex) => {
                         if (deletedRows[rowIndex]) return null;
+                        const displaySTT = formatSTT(displayRowNumber);
                         displayRowNumber++;
 
                         return (
@@ -1614,7 +1616,7 @@ function App() {
                               onClick={() => handleRowClick(rowIndex)}
                               style={{ cursor: "pointer" }}
                             >
-                              {displayRowNumber}
+                              {displaySTT}
                             </td>
                             <td
                               className={`data-cell fixed date-col sticky-col ${

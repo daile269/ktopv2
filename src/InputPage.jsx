@@ -3,6 +3,8 @@ import "./App.css";
 import "./InputPage.css";
 import { savePageData, loadPageData } from "./dataService";
 
+const formatSTT = (value) => String(value).padStart(2, "0");
+
 const TaskRow = memo(
   ({
     rowIndex,
@@ -54,7 +56,7 @@ const TaskRow = memo(
             cursor: isDeleted ? "default" : "pointer",
           }}
         >
-          {displayRowNumber + 1}
+          {formatSTT(displayRowNumber)}
         </td>
         {/* Ngày đã bị loại bỏ */}
         {Array.from({ length: 10 }).map((_, qIndex) => {
@@ -139,7 +141,7 @@ const TaskRow = memo(
             cursor: isDeleted ? "default" : "pointer",
           }}
         >
-          {displayRowNumber + 1}
+          {formatSTT(displayRowNumber)}
         </td>
         <td
           className={isLastAdded ? "last-added-row" : highlightedRows[rowIndex] ? "highlighted-row" : ""}
@@ -287,7 +289,11 @@ function InputPage() {
         ? String(start)
         : `${String(start)}-${String(end)}`,
     );
-    return "STT: " + ranges.join(", ");
+    return "STT: " + ranges.map((range) => {
+      if (!range.includes("-")) return formatSTT(range);
+      const [start, end] = range.split("-");
+      return `${formatSTT(start)}-${formatSTT(end)}`;
+    }).join(", ");
   };
 
   // Auto scroll to target row on load
@@ -474,7 +480,7 @@ function InputPage() {
   // formatDateSimple removed
 
   const handleToggleSelect = useCallback((rowIndex, currentQueue) => {
-    setQueue((prev) => [...prev, { rowIndex, displaySTT: String(rowIndex + 1) }]);
+    setQueue((prev) => [...prev, { rowIndex, displaySTT: formatSTT(rowIndex) }]);
     setLastAddedRow(rowIndex);
   }, []);
 
@@ -541,7 +547,7 @@ function InputPage() {
     setQueue((prev) => {
       const next = [...prev];
       for (const idx of selectedIndices) {
-        next.push({ rowIndex: idx, displaySTT: String(idx + 1) });
+        next.push({ rowIndex: idx, displaySTT: formatSTT(idx) });
       }
       return next;
     });
@@ -798,7 +804,7 @@ function InputPage() {
     const indicesToAppend = queue.map((item) => item.rowIndex);
 
     if (indicesToAppend.length === 0) {
-      alert("⚠️ Vui lòng thêm dòng vào hàng đợi trước!");
+      alert("⚠️ Vui lòng thêm dòng vào dòng đợi trước!");
       return;
     }
 
@@ -901,7 +907,7 @@ function InputPage() {
           activeZ.push(""); // Không chép cột Z sang bảng tính
           activeD.push(transferDate);
           activeDel.push(false);
-          activeSourceSTT.push(String(idx + 1));
+          activeSourceSTT.push(formatSTT(idx));
         });
 
         // Consolidate at top by padding at the bottom (push)
@@ -941,7 +947,7 @@ function InputPage() {
 
       // LƯU LẠI LỊCH SỬ LẦN VỪA CHUYỂN
       const batchInfo = {
-        stts: indicesToAppend.map((idx) => String(idx + 1)),
+        stts: indicesToAppend.map((idx) => formatSTT(idx)),
         zValues: indicesToAppend.map((idx) => zValues[idx] || ""),
         date: transferDate,
       };
@@ -1249,7 +1255,7 @@ function InputPage() {
             </div>
           </div>
 
-          {/* Panel hàng đợi */}
+          {/* Panel dòng đợi */}
           {queue.length > 0 && (
             <div
               style={{
@@ -1265,7 +1271,7 @@ function InputPage() {
               }}
             >
               <span style={{ fontSize: "30px", fontWeight: "bold", color: "black", marginRight: "8px" }}>
-                📋 Hàng đợi:
+                📋 Dòng đợi:
               </span>
               {queue.map((item, qIdx) => {
                 const luot = qIdx + 1; // thứ tự tổng
@@ -1312,7 +1318,7 @@ function InputPage() {
                           lineHeight: 1,
                           zIndex: 1,
                         }}
-                        title="Xóa khỏi hàng đợi"
+                        title="Xóa khỏi dòng đợi"
                       >
                         ×
                       </button>
@@ -1554,7 +1560,7 @@ function InputPage() {
                 fontSize: "22px",
               }}
             >
-              <p>Lần chọn mới {queue.length > 0 ? "(theo hàng đợi)" : ""}:</p>
+              <p>Lần chọn mới {queue.length > 0 ? "(theo dòng đợi)" : ""}:</p>
               <div style={{ fontWeight: "bold", color: "#6f42c1", display: "flex", flexWrap: "wrap", gap: "6px" }}>
                 {queue.length > 0
                   ? queue.map((item, i) => (
@@ -1567,7 +1573,7 @@ function InputPage() {
                         </span>
                       </span>
                     ))
-                  : "Chưa có dòng nào trong hàng đợi!"}
+                  : "Chưa có dòng nào trong dòng đợi!"}
               </div>
             </div>
 
