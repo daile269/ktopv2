@@ -557,6 +557,7 @@ function InputPage() {
     setHighlightedCells({});
     setHighlightedColumns({});
     setLastAddedRow(null);
+    setQueue([]);
   }, []);
 
 
