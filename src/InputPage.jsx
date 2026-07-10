@@ -506,7 +506,6 @@ function InputPage() {
         return [...prev, { rowIndex, displaySTT: formatSTT(rowIndex) }];
       }
     });
-    setLastAddedRow(rowIndex);
   }, []);
 
   const handleToggleRowHighlight = useCallback((rowIndex) => {
