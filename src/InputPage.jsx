@@ -31,18 +31,26 @@ const TaskRow = memo(
           className={isLastAdded ? "last-added-row" : highlightedRows[rowIndex] ? "highlighted-row" : ""}
           style={{
             textAlign: "center",
-            width: "60px !important",
-            minWidth: "60px !important",
+            width: "120px !important",
+            minWidth: "120px !important",
             padding: 0,
           }}
         >
           <input
             type="checkbox"
+            className="draft-row-checkbox"
             checked={isSelected}
             onChange={() => onToggleSelect(rowIndex)}
             disabled={isDeleted}
             style={{
-              transform: "scale(2.2)",
+              appearance: "none",
+              WebkitAppearance: "none",
+              width: "64px",
+              height: "64px",
+              border: "4px solid #777",
+              borderRadius: "8px",
+              backgroundColor: isSelected ? "#6f42c1" : "#fff",
+              boxShadow: isSelected ? "inset 0 0 0 10px #fff" : "none",
               cursor: "pointer",
             }}
           />
@@ -147,18 +155,26 @@ const TaskRow = memo(
           className={isLastAdded ? "last-added-row" : highlightedRows[rowIndex] ? "highlighted-row" : ""}
           style={{
             textAlign: "center",
-            width: "80px !important",
-            minWidth: "80px !important",
+            width: "120px !important",
+            minWidth: "120px !important",
             padding: 0,
           }}
         >
           <input
             type="checkbox"
+            className="draft-row-checkbox"
             checked={isSelected}
             onChange={() => onToggleSelect(rowIndex)}
             disabled={isDeleted}
             style={{
-              transform: "scale(2.2)",
+              appearance: "none",
+              WebkitAppearance: "none",
+              width: "64px",
+              height: "64px",
+              border: "4px solid #777",
+              borderRadius: "8px",
+              backgroundColor: isSelected ? "#6f42c1" : "#fff",
+              boxShadow: isSelected ? "inset 0 0 0 10px #fff" : "none",
               cursor: "pointer",
             }}
           />
@@ -190,7 +206,6 @@ function InputPage() {
   const [purpleRangeTo, setPurpleRangeTo] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState("");
-  const [selectedRows, setSelectedRows] = useState([]); // mảng giữ thứ tự click
   const [lastAddedRow, setLastAddedRow] = useState(null);
   const [highlightedRows, setHighlightedRows] = useState({});
   const [highlightedCells, setHighlightedCells] = useState({});
@@ -261,6 +276,7 @@ function InputPage() {
     };
 
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Helper để format STT thành dãy (VD: 049-051, 055)
@@ -479,8 +495,15 @@ function InputPage() {
   // Helper function to format date to DD/MM/YYYY
   // formatDateSimple removed
 
-  const handleToggleSelect = useCallback((rowIndex, currentQueue) => {
-    setQueue((prev) => [...prev, { rowIndex, displaySTT: formatSTT(rowIndex) }]);
+  const handleToggleSelect = useCallback((rowIndex) => {
+    setQueue((prev) => {
+      const exists = prev.some((item) => item.rowIndex === rowIndex);
+      if (exists) {
+        return prev.filter((item) => item.rowIndex !== rowIndex);
+      } else {
+        return [...prev, { rowIndex, displaySTT: formatSTT(rowIndex) }];
+      }
+    });
     setLastAddedRow(rowIndex);
   }, []);
 
@@ -535,24 +558,7 @@ function InputPage() {
     setLastAddedRow(null);
   }, []);
 
-  // Queue handlers
-  const handleAddToQueue = useCallback(() => {
-    const selectedIndices = [...selectedRows];
-    if (selectedIndices.length === 0) {
-      alert("⚠️ Vui lòng chọn ít nhất một dòng!");
-      return;
-    }
 
-    // Kiểm tra trước khi set đã bỏ giới hạn MAX_PER_ROW
-    setQueue((prev) => {
-      const next = [...prev];
-      for (const idx of selectedIndices) {
-        next.push({ rowIndex: idx, displaySTT: formatSTT(idx) });
-      }
-      return next;
-    });
-    setSelectedRows([]);
-  }, [selectedRows, queue]);
 
   const handleRemoveFromQueue = useCallback((queueIndex) => {
     setQueue((prev) => prev.filter((_, i) => i !== queueIndex));
@@ -562,15 +568,7 @@ function InputPage() {
     setQueue([]);
   }, []);
 
-  const handleZChange = useCallback((rIdx, val) => {
-    if (val.length <= 10) {
-      setZValues((prev) => {
-        const next = [...prev];
-        next[rIdx] = val;
-        return next;
-      });
-    }
-  }, []);
+
 
   // Date change has been removed
 
@@ -954,7 +952,7 @@ function InputPage() {
       localStorage.setItem("lastBatchInfo", JSON.stringify(batchInfo));
       setLastBatch(batchInfo);
 
-      setSelectedRows([]);
+
       setQueue([]); // Reset queue sau khi đã append
       setShowAddModal(false);
       setShowSuccessModal(true);
@@ -1361,8 +1359,8 @@ function InputPage() {
                     rowSpan="2"
                     style={{
                       padding: 0,
-                      width: "60px !important",
-                      minWidth: "60px !important",
+                      width: "120px !important",
+                      minWidth: "120px !important",
                       fontSize: "14px",
                     }}
                   >
@@ -1405,8 +1403,8 @@ function InputPage() {
                     rowSpan="2"
                     style={{
                       padding: 0,
-                      width: "60px !important",
-                      minWidth: "60px !important",
+                      width: "120px !important",
+                      minWidth: "120px !important",
                       fontSize: "14px",
                     }}
                   >
@@ -1464,19 +1462,19 @@ function InputPage() {
                 </tr>
               </thead>
               <tbody>
-                {sortedIndices.map((rowIndex, idx) => (
+                 {sortedIndices.map((rowIndex, idx) => (
                   <TaskRow
                     key={rowIndex}
                     rowIndex={rowIndex}
                     displayRowNumber={idx}
                     isDeleted={deletedRows[rowIndex]}
-                    isSelected={selectedRows.includes(rowIndex)}
+                    isSelected={queue.some((item) => item.rowIndex === rowIndex)}
                     isLastAdded={lastAddedRow === rowIndex}
                     allQData={allQData}
                     highlightedRows={highlightedRows}
                     highlightedCells={highlightedCells}
                     highlightedColumns={highlightedColumns}
-                    onToggleSelect={(rowIndex) => handleToggleSelect(rowIndex, queue)}
+                    onToggleSelect={(rowIndex) => handleToggleSelect(rowIndex)}
                     onToggleRowHighlight={handleToggleRowHighlight}
                     onToggleCellHighlight={handleToggleCellHighlight}
                     onAChange={handleAChange}

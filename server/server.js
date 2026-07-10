@@ -165,24 +165,29 @@ app.post("/api/pages/:pageId", async (req, res) => {
     const trimmedSourceSTT =
       lastIndex >= 0 && sourceSTTValues ? sourceSTTValues.slice(0, lastIndex + 1) : [];
 
+    const updateData = {
+      pageId,
+      aValues: trimmedA,
+      bValues: trimmedB,
+      zValues: trimmedZ,
+      dateValues: trimmedDates,
+      deletedRows: trimmedDeleted,
+      sourceSTTValues: trimmedSourceSTT,
+      purpleRangeFrom: purpleRangeFrom || 0,
+      purpleRangeTo: purpleRangeTo || 0,
+      keepLastNRows: keepLastNRows || 125,
+      allQData,
+      updatedAt: new Date(),
+    };
+
+    if (pageLabel !== undefined) {
+      updateData.pageLabel = pageLabel || "";
+    }
+
     // Update or create page
     const page = await Page.findOneAndUpdate(
       { pageId },
-      {
-        pageId,
-        aValues: trimmedA,
-        bValues: trimmedB,
-        zValues: trimmedZ,
-        dateValues: trimmedDates,
-        deletedRows: trimmedDeleted,
-        sourceSTTValues: trimmedSourceSTT,
-        purpleRangeFrom: purpleRangeFrom || 0,
-        purpleRangeTo: purpleRangeTo || 0,
-        keepLastNRows: keepLastNRows || 125,
-        allQData,
-        pageLabel: pageLabel || "",
-        updatedAt: new Date(),
-      },
+      updateData,
       {
         upsert: true,
         new: true,
@@ -243,6 +248,8 @@ app.delete("/api/pages/:pageId", async (req, res) => {
   }
 });
 
+
+
 /**
  * GET /api/pages
  * Get all pages (for debugging)
@@ -274,7 +281,7 @@ app.use((req, res) => {
 });
 
 // Error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error("❌ Server error:", err);
   res.status(500).json({
     success: false,

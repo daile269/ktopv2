@@ -472,39 +472,39 @@ body {
 
 /* Highlight hàng */
 .data-cell.highlighted-row {
-  border-top: 2px solid #ffa500 !important;
-  border-bottom: 2px solid #ffa500 !important;
-  box-shadow: inset 0 0 0 2000px rgba(255, 165, 0, 0.3) !important; /* Lớp phủ cam nhạt */
+  border-top: 2px solid #3f51b5 !important;
+  border-bottom: 2px solid #3f51b5 !important;
+  box-shadow: inset 0 0 0 2000px rgba(63, 81, 181, 0.15) !important; /* Lớp phủ chàm nhạt */
   font-weight: 600;
 }
 
 /* Highlight cột */
 .data-cell.highlighted-column {
-  border-left: 2px solid #fbc02d !important;
-  border-right: 2px solid #fbc02d !important;
-  box-shadow: inset 0 0 0 2000px rgba(255, 241, 118, 0.4) !important; /* Lớp phủ vàng nhạt */
+  border-left: 2px solid #00bcff !important;
+  border-right: 2px solid #00bcff !important;
+  box-shadow: inset 0 0 0 2000px rgba(0, 188, 255, 0.15) !important; /* Lớp phủ xanh biển nhạt */
 }
 
-/* Highlight ô T - click 1 lần: Màu vàng */
+/* Highlight ô T - click 1 lần: Màu xanh biển nhạt */
 .data-cell.highlighted-t-yellow {
-  background-color: #fdd835 !important; /* Vàng */
-  border: 3px solid #f9a825 !important;
-  color: #333 !important;
+  background-color: #e3f2fd !important; /* Xanh biển nhạt */
+  border: 3px solid #90caf9 !important;
+  color: #0d47a1 !important;
 }
 
 .data-cell.highlighted-t-yellow .grid-input {
-  color: #333 !important;
+  color: #0d47a1 !important;
   background: transparent !important;
 }
 
-/* Header cột được chọn (vàng) - dùng selector đủ mạnh để override */
+/* Header cột được chọn (xanh biển) - dùng selector đủ mạnh để override */
 .group-header.col-header-yellow,
 .col-header.col-header-yellow,
 .col-header.fixed.col-header-yellow {
-  background-color: #fdd835 !important;
-  background: #fdd835 !important;
-  color: #333 !important;
-  border-color: #f9a825 !important;
+  background-color: #90caf9 !important;
+  background: #90caf9 !important;
+  color: #0d47a1 !important;
+  border-color: #64b5f6 !important;
 }
 
 /* Highlight ô T - click 2 lần: Màu cam */
@@ -528,13 +528,13 @@ body {
 
 /* Override cho fixed cells khi highlight */
 .data-cell.fixed.highlighted-column {
-  border: 2px solid #fbc02d !important;
-  box-shadow: inset 0 0 0 2000px rgba(255, 241, 118, 0.4) !important;
+  border: 2px solid #90caf9 !important;
+  box-shadow: inset 0 0 0 2000px rgba(144, 202, 249, 0.2) !important;
 }
 
 .data-cell.fixed.highlighted-row {
-  border: 2px solid #fbc02d !important;
-  box-shadow: inset 0 0 0 2000px rgba(255, 241, 118, 0.4) !important;
+  border: 2px solid #3f51b5 !important;
+  box-shadow: inset 0 0 0 2000px rgba(63, 81, 181, 0.15) !important;
 }
 
 /* XÓA tất cả các rule thay đổi background cũ */

@@ -69,7 +69,7 @@ export const savePageData = async (
     let data = {};
     try {
       data = text ? JSON.parse(text) : {};
-    } catch (e) {
+    } catch {
       console.warn("⚠️ Response is not JSON:", text);
     }
 
@@ -97,7 +97,7 @@ export const loadPageData = async (pageId) => {
     let result = {};
     try {
       result = text ? JSON.parse(text) : {};
-    } catch (e) {
+    } catch {
       console.warn("⚠️ Response is not JSON:", text);
     }
 
