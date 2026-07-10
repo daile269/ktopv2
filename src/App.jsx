@@ -1644,7 +1644,7 @@ function App() {
                                 className="grid-input"
                                 value={sourceSTTValues[rowIndex] || ""}
                                 readOnly={true}
-                                style={{ color: "#6f42c1", fontWeight: "bold" }}
+                                style={{ color: "#6f42c1", fontWeight: "bold", pointerEvents: "none" }}
                               />
                             </td>
                             <td
@@ -1668,6 +1668,7 @@ function App() {
                                   color: highlightedACells[rowIndex]
                                     ? "white"
                                     : "#ef4444",
+                                  pointerEvents: "none",
                                 }}
                               />
                             </td>
@@ -1692,6 +1693,7 @@ function App() {
                                   color: highlightedBCells[rowIndex]
                                     ? "white"
                                     : "#ef4444",
+                                  pointerEvents: "none",
                                 }}
                               />
                             </td>
