@@ -74,6 +74,8 @@ const TaskRow = memo(
           const color = qIndex % 2 === 0 ? "#fff" : "#f1f1f1";
           const aKey = `${qIndex}-a`;
           const bKey = `${qIndex}-b`;
+          const isAActive = highlightedCells[rowIndex]?.[aKey] || highlightedColumns[aKey] || highlightedRows[rowIndex] || isSelected || isLastAdded;
+          const isBActive = highlightedCells[rowIndex]?.[bKey] || highlightedColumns[bKey] || highlightedRows[rowIndex] || isSelected || isLastAdded;
 
           return (
             <span key={qIndex} style={{ display: "contents" }}>
@@ -93,7 +95,7 @@ const TaskRow = memo(
                   !isDeleted && onToggleCellHighlight(rowIndex, aKey)
                 }
                 style={{
-                  backgroundColor: color,
+                  backgroundColor: isAActive ? undefined : color,
                   borderRight: "2px solid #999",
                   cursor: isDeleted ? "default" : "pointer",
                 }}
@@ -123,7 +125,7 @@ const TaskRow = memo(
                   !isDeleted && onToggleCellHighlight(rowIndex, bKey)
                 }
                 style={{
-                  backgroundColor: color,
+                  backgroundColor: isBActive ? undefined : color,
                   borderRight: "2px solid red",
                   cursor: isDeleted ? "default" : "pointer",
                 }}
