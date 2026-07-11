@@ -745,19 +745,10 @@ function InputPage() {
       return;
     }
 
-    const visibleIndices = [];
-    for (let i = 0; i < dateValues.length; i++) {
-      if (!deletedRows[i]) visibleIndices.push(i);
-    }
-
     const newDeletedRows = [...deletedRows];
     let count = 0;
-    for (
-      let vIdx = from;
-      vIdx <= Math.min(to, visibleIndices.length - 1);
-      vIdx++
-    ) {
-      newDeletedRows[visibleIndices[vIdx]] = true;
+    for (let i = from; i <= Math.min(to, dateValues.length - 1); i++) {
+      newDeletedRows[i] = true;
       count++;
     }
 

@@ -1043,30 +1043,12 @@ function App() {
         return;
       }
 
-      // Mapping STT hiển thị (visible) sang index thực tế
-      const visibleIndices = [];
-      for (let i = 0; i < ROWS; i++) {
-        if (!deletedRows[i]) {
-          visibleIndices.push(i);
-        }
-      }
-
-      if (from >= visibleIndices.length) {
-        alert("⚠️ STT bắt đầu vượt quá số lượng dòng hiện có!");
-        return;
-      }
-
       const newDeletedRows = [...deletedRows];
       let deletedCount = 0;
 
-      // Xóa các dòng dựa trên STT hiển thị
-      for (
-        let vIdx = from;
-        vIdx <= Math.min(to, visibleIndices.length - 1);
-        vIdx++
-      ) {
-        const actualIndex = visibleIndices[vIdx];
-        newDeletedRows[actualIndex] = true;
+      // Xóa các dòng từ index 'from' đến 'to' trực tiếp
+      for (let i = from; i <= Math.min(to, ROWS - 1); i++) {
+        newDeletedRows[i] = true;
         deletedCount++;
       }
 

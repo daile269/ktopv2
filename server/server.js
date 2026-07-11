@@ -144,7 +144,9 @@ app.post("/api/pages/:pageId", async (req, res) => {
         (aValues && aValues[i]) ||
         (bValues && bValues[i]) ||
         (zValues && zValues[i]) ||
-        (dateValues && dateValues[i])
+        (dateValues && dateValues[i]) ||
+        (deletedRows && deletedRows[i] === true) ||
+        (sourceSTTValues && sourceSTTValues[i])
       ) {
         lastIndex = i;
         break;
