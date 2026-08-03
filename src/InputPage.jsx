@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, memo, useCallback } from "react";
+import { useState, useEffect, useMemo, memo, useCallback, Fragment } from "react";
 import "./App.css";
 import "./InputPage.css";
 import { savePageData, loadPageData } from "./dataService";
@@ -69,8 +69,8 @@ const TaskRow = memo(
         {/* Ngày đã bị loại bỏ */}
         {Array.from({ length: 10 }).map((_, qIndex) => {
           const qData = allQData[qIndex];
-          const aV = isDeleted ? "" : qData?.aValues[rowIndex] || "";
-          const bV = isDeleted ? "" : qData?.bValues[rowIndex] || "";
+          const aV = qData?.aValues[rowIndex] || "";
+          const bV = qData?.bValues[rowIndex] || "";
           const color = qIndex % 2 === 0 ? "#fff" : "#f1f1f1";
           const aKey = `${qIndex}-a`;
           const bKey = `${qIndex}-b`;
@@ -78,7 +78,7 @@ const TaskRow = memo(
           const isBActive = highlightedCells[rowIndex]?.[bKey] || highlightedColumns[bKey] || highlightedRows[rowIndex] || isSelected || isLastAdded;
 
           return (
-            <span key={qIndex} style={{ display: "contents" }}>
+            <Fragment key={qIndex}>
               <td
                 className={
                   highlightedCells[rowIndex]?.[aKey]
@@ -91,13 +91,11 @@ const TaskRow = memo(
                           ? "last-added-row"
                           : ""
                 }
-                onClick={() =>
-                  !isDeleted && onToggleCellHighlight(rowIndex, aKey)
-                }
+                onClick={() => onToggleCellHighlight(rowIndex, aKey)}
                 style={{
                   backgroundColor: isAActive ? undefined : color,
                   borderRight: "2px solid #999",
-                  cursor: isDeleted ? "default" : "pointer",
+                  cursor: "pointer",
                 }}
               >
                 <input
@@ -105,8 +103,6 @@ const TaskRow = memo(
                   className="cell-input small"
                   value={aV}
                   onChange={(e) => onAChange(qIndex, rowIndex, e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                  disabled={isDeleted}
                 />
               </td>
               <td
@@ -121,13 +117,11 @@ const TaskRow = memo(
                           ? "last-added-row"
                           : ""
                 }
-                onClick={() =>
-                  !isDeleted && onToggleCellHighlight(rowIndex, bKey)
-                }
+                onClick={() => onToggleCellHighlight(rowIndex, bKey)}
                 style={{
                   backgroundColor: isBActive ? undefined : color,
                   borderRight: "2px solid red",
-                  cursor: isDeleted ? "default" : "pointer",
+                  cursor: "pointer",
                 }}
               >
                 <input
@@ -135,11 +129,9 @@ const TaskRow = memo(
                   className="cell-input small"
                   value={bV}
                   onChange={(e) => onBChange(qIndex, rowIndex, e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                  disabled={isDeleted}
                 />
               </td>
-            </span>
+            </Fragment>
           );
         })}
         <td
@@ -596,6 +588,15 @@ function InputPage() {
       };
       return next;
     });
+
+    setDeletedRows((prev) => {
+      if (prev[rIdx]) {
+        const next = [...prev];
+        next[rIdx] = false;
+        return next;
+      }
+      return prev;
+    });
   }, []);
 
   const handleBChange = useCallback((qIdx, rIdx, val) => {
@@ -615,6 +616,15 @@ function InputPage() {
         bValues: bArr,
       };
       return next;
+    });
+
+    setDeletedRows((prev) => {
+      if (prev[rIdx]) {
+        const next = [...prev];
+        next[rIdx] = false;
+        return next;
+      }
+      return prev;
     });
   }, []);
 
@@ -1483,7 +1493,7 @@ function InputPage() {
                     highlightedRows={highlightedRows}
                     highlightedCells={highlightedCells}
                     highlightedColumns={highlightedColumns}
-                    onToggleSelect={(rowIndex) => handleToggleSelect(rowIndex)}
+                    onToggleSelect={handleToggleSelect}
                     onToggleRowHighlight={handleToggleRowHighlight}
                     onToggleCellHighlight={handleToggleCellHighlight}
                     onAChange={handleAChange}

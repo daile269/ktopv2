@@ -50,12 +50,14 @@
   font-size: 30px !important;
   padding: 8px !important;
   min-height: 40px;
+  cursor: text !important;
 }
 
 .schedule-table .cell-input.small {
   font-size: 30px !important;
   padding: 8px !important;
   min-height: 40px;
+  cursor: text !important;
 }
 
 .schedule-table th.col-header-yellow {
