@@ -245,15 +245,19 @@ function InputPage() {
 
       if (result.success && result.data) {
         const d = result.data;
-        setAllQData(
-          d.allQData ||
-            Array(10)
-              .fill(null)
-              .map(() => ({
-                aValues: Array(ROWS).fill(""),
-                bValues: Array(ROWS).fill(""),
-              })),
-        );
+        const rawAllQ = Array.isArray(d.allQData) ? d.allQData : [];
+        const normalizedAllQ = Array(10)
+          .fill(null)
+          .map((_, qIdx) => {
+            const qObj = rawAllQ[qIdx] || {};
+            const a = Array.isArray(qObj.aValues) ? [...qObj.aValues] : [];
+            const b = Array.isArray(qObj.bValues) ? [...qObj.bValues] : [];
+            while (a.length < ROWS) a.push("");
+            while (b.length < ROWS) b.push("");
+            return { aValues: a, bValues: b };
+          });
+
+        setAllQData(normalizedAllQ);
         setDateValues(d.dateValues || Array(ROWS).fill(""));
         setZValues(d.zValues || Array(ROWS).fill(""));
         setDeletedRows(d.deletedRows || Array(ROWS).fill(false));
@@ -576,28 +580,40 @@ function InputPage() {
 
   const handleAChange = useCallback((qIdx, rIdx, val) => {
     setAllQData((prev) => {
-      const next = [...prev];
-      // Deep clone only the affected Q
-      const updatedQ = {
-        ...next[qIdx],
-        aValues: [...next[qIdx].aValues],
+      const next = Array.isArray(prev) ? [...prev] : [];
+      const targetQ = next[qIdx] || {};
+      const aArr = Array.isArray(targetQ.aValues) ? [...targetQ.aValues] : [];
+      const bArr = Array.isArray(targetQ.bValues) ? [...targetQ.bValues] : [];
+
+      while (aArr.length <= rIdx) {
+        aArr.push("");
+      }
+      aArr[rIdx] = val;
+
+      next[qIdx] = {
+        aValues: aArr,
+        bValues: bArr,
       };
-      updatedQ.aValues[rIdx] = val;
-      next[qIdx] = updatedQ;
       return next;
     });
   }, []);
 
   const handleBChange = useCallback((qIdx, rIdx, val) => {
     setAllQData((prev) => {
-      const next = [...prev];
-      // Deep clone only the affected Q
-      const updatedQ = {
-        ...next[qIdx],
-        bValues: [...next[qIdx].bValues],
+      const next = Array.isArray(prev) ? [...prev] : [];
+      const targetQ = next[qIdx] || {};
+      const aArr = Array.isArray(targetQ.aValues) ? [...targetQ.aValues] : [];
+      const bArr = Array.isArray(targetQ.bValues) ? [...targetQ.bValues] : [];
+
+      while (bArr.length <= rIdx) {
+        bArr.push("");
+      }
+      bArr[rIdx] = val;
+
+      next[qIdx] = {
+        aValues: aArr,
+        bValues: bArr,
       };
-      updatedQ.bValues[rIdx] = val;
-      next[qIdx] = updatedQ;
       return next;
     });
   }, []);
