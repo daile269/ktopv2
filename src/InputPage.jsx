@@ -91,11 +91,11 @@ const TaskRow = memo(
                           ? "last-added-row"
                           : ""
                 }
-                onClick={() => onToggleCellHighlight(rowIndex, aKey)}
+                onClick={(e) => onToggleCellHighlight(e, rowIndex, aKey)}
                 style={{
                   backgroundColor: isAActive ? undefined : color,
                   borderRight: "2px solid #999",
-                  cursor: "pointer",
+                  cursor: "text",
                 }}
               >
                 <input
@@ -117,11 +117,11 @@ const TaskRow = memo(
                           ? "last-added-row"
                           : ""
                 }
-                onClick={() => onToggleCellHighlight(rowIndex, bKey)}
+                onClick={(e) => onToggleCellHighlight(e, rowIndex, bKey)}
                 style={{
                   backgroundColor: isBActive ? undefined : color,
                   borderRight: "2px solid red",
-                  cursor: "pointer",
+                  cursor: "text",
                 }}
               >
                 <input
@@ -511,21 +511,27 @@ function InputPage() {
     }));
   }, []);
 
-  const handleToggleCellHighlight = useCallback((rowIndex, columnKey) => {
-    setHighlightedCells((prev) => {
-      const currentRow = prev[rowIndex] || {};
-      const nextRow = { ...currentRow };
-      if (nextRow[columnKey]) {
-        delete nextRow[columnKey];
-      } else {
-        nextRow[columnKey] = true;
-      }
+  const handleToggleCellHighlight = useCallback((e, rowIndex, columnKey) => {
+    const clickCount = e?.detail || 1;
 
-      return {
-        ...prev,
-        [rowIndex]: nextRow,
-      };
-    });
+    if (clickCount === 2) {
+      // Click 2 chuột (double click): Nếu chưa có màu -> bật màu, nếu đã có màu -> mất màu
+      setHighlightedCells((prev) => {
+        const currentRow = prev[rowIndex] || {};
+        const nextRow = { ...currentRow };
+        if (nextRow[columnKey]) {
+          delete nextRow[columnKey];
+        } else {
+          nextRow[columnKey] = true;
+        }
+
+        return {
+          ...prev,
+          [rowIndex]: nextRow,
+        };
+      });
+    }
+    // Click 1 chuột: Giữ nguyên màu, cho phép nhập liệu tự nhiên
   }, []);
 
   const handleToggleColumnHighlight = useCallback((columnKey) => {
