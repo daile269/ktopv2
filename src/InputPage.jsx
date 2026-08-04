@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, memo, useCallback, Fragment } from "react";
+import { useState, useEffect, useMemo, memo, useCallback, Fragment, useRef } from "react";
 import "./App.css";
 import "./InputPage.css";
 import { savePageData, loadPageData } from "./dataService";
@@ -206,6 +206,7 @@ function InputPage() {
   const [highlightedColumns, setHighlightedColumns] = useState({});
   const [showAddModal, setShowAddModal] = useState(false);
   const [isAddingToCalc, setIsAddingToCalc] = useState(false);
+  const hasAutoScrolledRef = useRef(false);
   const [transferDate, setTransferDate] = useState(() => {
     return (
       localStorage.getItem("lastTransferDate") ||
@@ -310,9 +311,10 @@ function InputPage() {
     }).join(", ");
   };
 
-  // Auto scroll to target row on load
+  // Auto scroll to target row on initial load ONLY
   useEffect(() => {
-    if (!isLoading && dateValues.length > 0) {
+    if (!isLoading && dateValues.length > 0 && !hasAutoScrolledRef.current) {
+      hasAutoScrolledRef.current = true;
       const timer = setTimeout(() => {
         let targetRowIndex =
           dateValues.length >= 50 ? 49 : dateValues.length - 1;
@@ -343,7 +345,7 @@ function InputPage() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [isLoading, dateValues.length, deletedRows]);
+  }, [isLoading, dateValues.length]);
 
   // Lấy thông tin lần chuyển cuối từ localStorage
   const [lastBatch, setLastBatch] = useState(() => {
@@ -994,13 +996,8 @@ function InputPage() {
     return Array.from(
       { length: dateValues.length || MIN_ROWS },
       (_, i) => i,
-    ).sort((a, b) => {
-      const aDeleted = deletedRows[a] || false;
-      const bDeleted = deletedRows[b] || false;
-      if (aDeleted === bDeleted) return a - b;
-      return aDeleted ? 1 : -1;
-    });
-  }, [dateValues.length, deletedRows]);
+    );
+  }, [dateValues.length]);
 
   if (isLoading) {
     return (
