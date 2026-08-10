@@ -515,7 +515,7 @@ function App() {
   const handleAColClick = () => setHighlightedAColumn((prev) => !prev);
   const handleBColClick = () => setHighlightedBColumn((prev) => !prev);
 
-  // Click vào STT hoặc Ngày — toggle highlight cả hàng màu cam nhạt
+  // Click vào STT hoặc Ngày — toggle highlight cả hàng xanh lá mạ
   const handleRowClick = (rowIndex) => {
     setHighlightedRows((prev) => ({
       ...prev,

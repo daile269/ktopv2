@@ -9,7 +9,6 @@ const TaskRow = memo(
   ({
     rowIndex,
     displayRowNumber,
-    isDeleted,
     isSelected,
     isLastAdded,
     allQData,
@@ -41,7 +40,6 @@ const TaskRow = memo(
             className="draft-row-checkbox"
             checked={isSelected}
             onChange={() => onToggleSelect(rowIndex)}
-            disabled={isDeleted}
             style={{
               appearance: "none",
               WebkitAppearance: "none",
@@ -49,7 +47,7 @@ const TaskRow = memo(
               height: "64px",
               border: "4px solid #777",
               borderRadius: "8px",
-              backgroundColor: isSelected ? "#6f42c1" : "#fff",
+              backgroundColor: isSelected ? "#f48fb1" : "#fff",
               boxShadow: isSelected ? "inset 0 0 0 10px #fff" : "none",
               cursor: "pointer",
             }}
@@ -57,11 +55,11 @@ const TaskRow = memo(
         </td>
         <td
           className={isLastAdded ? "last-added-row" : highlightedRows[rowIndex] ? "highlighted-row" : ""}
-          onClick={() => !isDeleted && onToggleRowHighlight(rowIndex)}
+          onClick={() => onToggleRowHighlight(rowIndex)}
           style={{
             textAlign: "center",
             fontSize: "20px",
-            cursor: isDeleted ? "default" : "pointer",
+            cursor: "pointer",
           }}
         >
           {formatSTT(displayRowNumber)}
@@ -136,11 +134,11 @@ const TaskRow = memo(
         })}
         <td
           className={isLastAdded ? "last-added-row" : highlightedRows[rowIndex] ? "highlighted-row" : ""}
-          onClick={() => !isDeleted && onToggleRowHighlight(rowIndex)}
+          onClick={() => onToggleRowHighlight(rowIndex)}
           style={{
             textAlign: "center",
             fontSize: "20px",
-            cursor: isDeleted ? "default" : "pointer",
+            cursor: "pointer",
           }}
         >
           {formatSTT(displayRowNumber)}
@@ -159,7 +157,6 @@ const TaskRow = memo(
             className="draft-row-checkbox"
             checked={isSelected}
             onChange={() => onToggleSelect(rowIndex)}
-            disabled={isDeleted}
             style={{
               appearance: "none",
               WebkitAppearance: "none",
@@ -167,7 +164,7 @@ const TaskRow = memo(
               height: "64px",
               border: "4px solid #777",
               borderRadius: "8px",
-              backgroundColor: isSelected ? "#6f42c1" : "#fff",
+              backgroundColor: isSelected ? "#f48fb1" : "#fff",
               boxShadow: isSelected ? "inset 0 0 0 10px #fff" : "none",
               cursor: "pointer",
             }}
@@ -253,7 +250,26 @@ function InputPage() {
         setAllQData(normalizedAllQ);
         setDateValues(d.dateValues || Array(ROWS).fill(""));
         setZValues(d.zValues || Array(ROWS).fill(""));
-        setDeletedRows(d.deletedRows || Array(ROWS).fill(false));
+
+        // Chuẩn hóa deletedRows: dòng trống bị đánh dấu xóa (padding từ bảng tính) → bật lại
+        const loadedDeleted = Array.isArray(d.deletedRows)
+          ? [...d.deletedRows]
+          : Array(ROWS).fill(false);
+        while (loadedDeleted.length < ROWS) loadedDeleted.push(false);
+        const normalizedDeleted = loadedDeleted.map((deleted, i) => {
+          if (!deleted) return false;
+          const hasData =
+            (d.dateValues?.[i] && String(d.dateValues[i]).trim() !== "") ||
+            (d.zValues?.[i] && String(d.zValues[i]).trim() !== "") ||
+            normalizedAllQ.some(
+              (q) =>
+                (q.aValues[i] && String(q.aValues[i]).trim() !== "") ||
+                (q.bValues[i] && String(q.bValues[i]).trim() !== ""),
+            );
+          return hasData ? true : false;
+        });
+        setDeletedRows(normalizedDeleted);
+
         setKeepLastNRows(Math.min(d.keepLastNRows || 125, 125));
         setPurpleRangeFrom(d.purpleRangeFrom || 0);
         setPurpleRangeTo(d.purpleRangeTo || 0);
@@ -1489,7 +1505,6 @@ function InputPage() {
                     key={rowIndex}
                     rowIndex={rowIndex}
                     displayRowNumber={idx}
-                    isDeleted={deletedRows[rowIndex]}
                     isSelected={queue.some((item) => item.rowIndex === rowIndex)}
                     isLastAdded={lastAddedRow === rowIndex}
                     allQData={allQData}
@@ -1774,11 +1789,12 @@ function InputPage() {
           box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
         .selected-draft-row {
-          background-color: #f3e8ff !important;
+          background-color: #fce4ec !important;
         }
         .selected-draft-row td {
-          border-top: 1px solid #6f42c1;
-          border-bottom: 1px solid #6f42c1;
+          border-top: 1px solid #f48fb1;
+          border-bottom: 1px solid #f48fb1;
+          box-shadow: inset 0 0 0 2000px #fce4ec;
         }
         .last-added-row {
           background-color: #ffe8cc !important;

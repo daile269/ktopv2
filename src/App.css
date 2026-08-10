@@ -470,41 +470,43 @@ body {
   box-shadow: 0 0 10px rgba(253, 216, 53, 0.5); /* Hiệu ứng tỏa sáng vàng */
 }
 
-/* Highlight hàng */
+/* Highlight hàng - xanh lá mạ */
 .data-cell.highlighted-row {
-  border-top: 2px solid #3f51b5 !important;
-  border-bottom: 2px solid #3f51b5 !important;
-  box-shadow: inset 0 0 0 2000px rgba(63, 81, 181, 0.15) !important; /* Lớp phủ chàm nhạt */
+  border-top: 2px solid #81c784 !important;
+  border-bottom: 2px solid #81c784 !important;
+  box-shadow: inset 0 0 0 2000px rgba(129, 199, 132, 0.22) !important;
   font-weight: 600;
 }
 
-/* Highlight cột */
+/* Highlight cột (legacy) - xanh nhạt */
 .data-cell.highlighted-column {
-  border-left: 2px solid #00bcff !important;
-  border-right: 2px solid #00bcff !important;
-  box-shadow: inset 0 0 0 2000px rgba(0, 188, 255, 0.15) !important; /* Lớp phủ xanh biển nhạt */
+  border-left: 2px solid #81d4fa !important;
+  border-right: 2px solid #81d4fa !important;
+  box-shadow: inset 0 0 0 2000px rgba(129, 212, 250, 0.15) !important;
 }
 
-/* Highlight ô T - click 1 lần: Màu xanh biển nhạt */
+/* Highlight cột - xanh nhạt */
 .data-cell.highlighted-t-yellow {
-  background-color: #e3f2fd !important; /* Xanh biển nhạt */
-  border: 3px solid #90caf9 !important;
-  color: #0d47a1 !important;
+  background-color: #e1f5fe !important;
+  border-left: 2px solid #81d4fa !important;
+  border-right: 2px solid #81d4fa !important;
+  color: #0277bd !important;
+  box-shadow: inset 0 0 0 2000px rgba(129, 212, 250, 0.15) !important;
 }
 
 .data-cell.highlighted-t-yellow .grid-input {
-  color: #0d47a1 !important;
+  color: #0277bd !important;
   background: transparent !important;
 }
 
-/* Header cột được chọn (xanh biển) - dùng selector đủ mạnh để override */
+/* Header cột được chọn - xanh nhạt */
 .group-header.col-header-yellow,
 .col-header.col-header-yellow,
 .col-header.fixed.col-header-yellow {
-  background-color: #90caf9 !important;
-  background: #90caf9 !important;
-  color: #0d47a1 !important;
-  border-color: #64b5f6 !important;
+  background-color: #b3e5fc !important;
+  background: #b3e5fc !important;
+  color: #0277bd !important;
+  border-color: #81d4fa !important;
 }
 
 /* Highlight ô T - click 2 lần: Màu cam */
@@ -528,13 +530,15 @@ body {
 
 /* Override cho fixed cells khi highlight */
 .data-cell.fixed.highlighted-column {
-  border: 2px solid #90caf9 !important;
-  box-shadow: inset 0 0 0 2000px rgba(144, 202, 249, 0.2) !important;
+  border-left: 2px solid #81d4fa !important;
+  border-right: 2px solid #81d4fa !important;
+  box-shadow: inset 0 0 0 2000px rgba(129, 212, 250, 0.15) !important;
 }
 
 .data-cell.fixed.highlighted-row {
-  border: 2px solid #3f51b5 !important;
-  box-shadow: inset 0 0 0 2000px rgba(63, 81, 181, 0.15) !important;
+  border-top: 2px solid #81c784 !important;
+  border-bottom: 2px solid #81c784 !important;
+  box-shadow: inset 0 0 0 2000px rgba(129, 199, 132, 0.22) !important;
 }
 
 /* XÓA tất cả các rule thay đổi background cũ */
