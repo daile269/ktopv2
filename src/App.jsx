@@ -4,6 +4,10 @@ import "./TopToolbar.css";
 import { savePageData, loadPageData, deletePageData } from "./dataService";
 import InputPage from "./InputPage";
 
+if (typeof window !== "undefined") {
+  window.__vite_plugin_react_preamble_installed__ = true;
+}
+
 function App() {
   const TOTAL_TABLES = 80;
   const ROWS = 125;

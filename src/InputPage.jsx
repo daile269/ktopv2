@@ -3,6 +3,10 @@ import "./App.css";
 import "./InputPage.css";
 import { savePageData, loadPageData } from "./dataService";
 
+if (typeof window !== "undefined") {
+  window.__vite_plugin_react_preamble_installed__ = true;
+}
+
 const formatSTT = (value) => String(value).padStart(2, "0");
 
 const TaskRow = memo(
