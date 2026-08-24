@@ -878,109 +878,132 @@ function InputPage() {
         }
       }
 
+      // 1. Tải dữ liệu của cả 10Q để tìm cấu trúc hàng chung (Master Rows)
+      const qPromises = [];
       for (let i = 1; i <= 10; i++) {
-        const qId = `q${i}`;
-        const currentData = await loadPageData(qId);
+        qPromises.push(loadPageData(`q${i}`));
+      }
+      const qResults = await Promise.all(qPromises);
 
-        // Lấy lại thông tin hiện tại của bảng tính để KHÔNG ghi đè sai lệch
-        const existingPurpleFrom =
-          currentData.success && currentData.data
-            ? currentData.data.purpleRangeFrom
-            : 0;
-        const existingPurpleTo =
-          currentData.success && currentData.data
-            ? currentData.data.purpleRangeTo
-            : 0;
-        const existingKeepN =
-          currentData.success && currentData.data
-            ? currentData.data.keepLastNRows
-            : MIN_ROWS;
+      let maxLen = 0;
+      let maxKeepN = MIN_ROWS;
+      const allQRawData = [];
 
-        let activeA = [],
-          activeB = [],
-          activeZ = [],
-          activeD = [],
-          activeDel = [],
-          activeSourceSTT = [];
+      qResults.forEach((res) => {
+        const d = res.success && res.data ? res.data : {};
+        allQRawData.push(d);
+        const aL = (d.aValues || []).length;
+        const bL = (d.bValues || []).length;
+        const dL = (d.dateValues || []).length;
+        const len = Math.max(aL, bL, dL);
+        if (len > maxLen) maxLen = len;
+        if ((d.keepLastNRows || 0) > maxKeepN) maxKeepN = d.keepLastNRows;
+      });
 
-        if (currentData.success && currentData.data) {
-          const d = currentData.data;
-          const aVals = d.aValues || [];
-          const bVals = d.bValues || [];
-          const zVals = d.zValues || [];
-          const dVals = d.dateValues || [];
-          const delFlags = d.deletedRows || [];
-          const sourceVals = d.sourceSTTValues || [];
+      // 2. Xây dựng danh sách hàng Master chung đồng bộ cho cả 10Q
+      const masterD = [];
+      const masterZ = [];
+      const masterDel = [];
+      const masterSourceSTT = [];
+      const masterQValues = Array(10)
+        .fill(null)
+        .map(() => ({ a: [], b: [] }));
 
-          // COMPACTION: Loại bỏ TOÀN BỘ các dòng trống (không có bất kỳ dữ liệu nào)
-          for (let j = 0; j < aVals.length; j++) {
-            const hasAnyData =
-              (aVals[j] !== undefined &&
-                aVals[j] !== null &&
-                String(aVals[j]).trim() !== "") ||
-              (bVals[j] !== undefined &&
-                bVals[j] !== null &&
-                String(bVals[j]).trim() !== "") ||
-              (zVals[j] !== undefined &&
-                zVals[j] !== null &&
-                String(zVals[j]).trim() !== "") ||
-              (dVals[j] !== undefined &&
-                dVals[j] !== null &&
-                String(dVals[j]).trim() !== "");
+      for (let j = 0; j < maxLen; j++) {
+        let hasAnyDataInAnyQ = false;
+        let dateVal = "";
+        let zVal = "";
+        let sourceVal = "";
+        let delVal = false;
 
-            // Nếu dòng thực sự có nội dung thì giữ lại, bất chấp cờ xóa
-            if (hasAnyData) {
-              activeA.push(aVals[j] || "");
-              activeB.push(bVals[j] || "");
-              activeZ.push(zVals[j] || "");
-              activeD.push(dVals[j] || "");
-              // Giữ nguyên cờ xóa nếu dòng có dữ liệu (có thể là dòng đã bị xóa ẩn đi)
-              activeDel.push(delFlags[j] === undefined ? false : delFlags[j]);
-              activeSourceSTT.push(sourceVals[j] || "");
-            }
+        for (let q = 0; q < 10; q++) {
+          const qd = allQRawData[q] || {};
+          const aV = qd.aValues?.[j];
+          const bV = qd.bValues?.[j];
+          const dV = qd.dateValues?.[j];
+          const zV = qd.zValues?.[j];
+          const sV = qd.sourceSTTValues?.[j];
+          const del = qd.deletedRows?.[j];
+
+          if (dV && !dateVal) dateVal = dV;
+          if (zV && !zVal) zVal = zV;
+          if (sV && !sourceVal) sourceVal = sV;
+          if (del !== undefined) delVal = del;
+
+          if (
+            (aV && String(aV).trim() !== "") ||
+            (bV && String(bV).trim() !== "") ||
+            (dV && String(dV).trim() !== "")
+          ) {
+            hasAnyDataInAnyQ = true;
           }
         }
 
-        // Append theo thứ tự queue (hoặc selectedIndices nếu không có queue)
-        indicesToAppend.forEach((idx) => {
-          activeA.push(allQData[i - 1].aValues[idx] || "");
-          activeB.push(allQData[i - 1].bValues[idx] || "");
-          activeZ.push(""); // Không chép cột Z sang bảng tính
-          activeD.push(transferDate);
-          activeDel.push(false);
-          activeSourceSTT.push(formatSTT(idx));
-        });
+        if (hasAnyDataInAnyQ) {
+          masterD.push(dateVal);
+          masterZ.push(zVal);
+          masterDel.push(delVal);
+          masterSourceSTT.push(sourceVal);
+          for (let q = 0; q < 10; q++) {
+            const qd = allQRawData[q] || {};
+            masterQValues[q].a.push(qd.aValues?.[j] || "");
+            masterQValues[q].b.push(qd.bValues?.[j] || "");
+          }
+        }
+      }
 
-        // Consolidate at top by padding at the bottom (push)
-        if (activeA.length > existingKeepN) {
-          activeA = activeA.slice(-existingKeepN);
-          activeB = activeB.slice(-existingKeepN);
-          activeZ = activeZ.slice(-existingKeepN);
-          activeD = activeD.slice(-existingKeepN);
-          activeDel = activeDel.slice(-existingKeepN);
-          activeSourceSTT = activeSourceSTT.slice(-existingKeepN);
+      // 3. Thêm các dòng mới vừa chọn từ Input Page vào danh sách Master
+      indicesToAppend.forEach((idx) => {
+        masterD.push(transferDate);
+        masterZ.push("");
+        masterDel.push(false);
+        masterSourceSTT.push(formatSTT(idx));
+        for (let q = 0; q < 10; q++) {
+          masterQValues[q].a.push(allQData[q]?.aValues[idx] || "");
+          masterQValues[q].b.push(allQData[q]?.bValues[idx] || "");
+        }
+      });
+
+      // 4. Lưu lại đồng bộ cho cả 10Q với cùng số lượng dòng, cùng Ngày và cùng STT
+      for (let q = 0; q < 10; q++) {
+        let qA = [...masterQValues[q].a];
+        let qB = [...masterQValues[q].b];
+        let qZ = [...masterZ];
+        let qD = [...masterD];
+        let qDel = [...masterDel];
+        let qSTT = [...masterSourceSTT];
+
+        if (qA.length > maxKeepN) {
+          qA = qA.slice(-maxKeepN);
+          qB = qB.slice(-maxKeepN);
+          qZ = qZ.slice(-maxKeepN);
+          qD = qD.slice(-maxKeepN);
+          qDel = qDel.slice(-maxKeepN);
+          qSTT = qSTT.slice(-maxKeepN);
         } else {
-          while (activeA.length < existingKeepN) {
-            activeA.push("");
-            activeB.push("");
-            activeZ.push("");
-            activeD.push("");
-            activeDel.push(true);
-            activeSourceSTT.push("");
+          while (qA.length < maxKeepN) {
+            qA.push("");
+            qB.push("");
+            qZ.push("");
+            qD.push("");
+            qDel.push(true);
+            qSTT.push("");
           }
         }
 
         await savePageData(
-          qId,
-          activeA,
-          activeB,
-          activeZ,
-          activeD,
-          activeDel,
-          activeSourceSTT,
-          existingPurpleFrom,
-          existingPurpleTo,
-          existingKeepN,
+          `q${q + 1}`,
+          qA,
+          qB,
+          qZ,
+          qD,
+          qDel,
+          qSTT,
+          allQRawData[q]?.purpleRangeFrom || 0,
+          allQRawData[q]?.purpleRangeTo || 0,
+          maxKeepN,
+          undefined,
+          allQRawData[q]?.pageLabel || "",
         );
       }
 
