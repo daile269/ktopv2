@@ -499,7 +499,7 @@ body {
   background: transparent !important;
 }
 
-/* Header cột được chọn - xanh nhạt */
+/* Header cột được chọn - xanh nhạt (Header 2) */
 .group-header.col-header-yellow,
 .col-header.col-header-yellow,
 .col-header.fixed.col-header-yellow {
@@ -507,6 +507,14 @@ body {
   background: #b3e5fc !important;
   color: #0277bd !important;
   border-color: #81d4fa !important;
+}
+
+/* Header 1 khi đang mở Thống kê - Xanh Teal */
+.group-header.col-header-stats-active {
+  background-color: #80deea !important;
+  background: #80deea !important;
+  color: #004d40 !important;
+  border-color: #4dd0e1 !important;
 }
 
 /* Highlight ô T - click 2 lần: Màu cam */

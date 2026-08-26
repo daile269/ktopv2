@@ -75,6 +75,7 @@ function App() {
   const [showDeleteByRowsModal, setShowDeleteByRowsModal] = useState(false);
   const [goToTableNumber, setGoToTableNumber] = useState("");
   const [pageLabel, setPageLabel] = useState("");
+  const [colStatsConfig, setColStatsConfig] = useState(null);
 
   const pathname = window.location.pathname.slice(1);
   const pageId = pathname || "q1";
@@ -515,9 +516,57 @@ function App() {
     });
   };
 
-  // Click header cột A/B - toggle cả cột màu vàng
+  // Click header cột A/B - toggle cả cột màu xanh nhạt
   const handleAColClick = () => setHighlightedAColumn((prev) => !prev);
   const handleBColClick = () => setHighlightedBColumn((prev) => !prev);
+
+  // Click ở Dòng Header 1 (trên cùng) -> Bật/Tắt Thống kê 100 dòng toán đầu (0-9)
+  const handleHeader1ColClick = (colType, tableIndex = null, colName = "") => {
+    setColStatsConfig((prev) => {
+      if (
+        prev &&
+        prev.colType === colType &&
+        prev.tableIndex === tableIndex
+      ) {
+        return null; // Bấm lại đúng cột đang mở -> Đóng
+      }
+      return { colType, tableIndex, colName };
+    });
+  };
+
+  // Tính toán số lượng các chữ số từ 0 đến 9 trong 100 dòng toán đầu tiên
+  const calculateColDigitStats = (colType, tableIndex) => {
+    const counts = Array(10).fill(0);
+    let countedRows = 0;
+
+    for (let i = 0; i < ROWS; i++) {
+      if (deletedRows[i]) continue;
+
+      let val = "";
+      if (colType === "A") {
+        val = aValues[i];
+      } else if (colType === "B") {
+        val = bValues[i];
+      } else if (colType === "T" && tableIndex !== null && allTValues[tableIndex]) {
+        val = allTValues[tableIndex][i];
+      }
+
+      // Chỉ xét nếu dòng có dữ liệu (có Ngày hoặc A/B hoặc T)
+      if (dateValues[i] || aValues[i] || bValues[i]) {
+        if (val !== "" && val !== undefined && val !== null) {
+          const num = parseInt(val, 10);
+          if (!isNaN(num)) {
+            const digit = ((num % 10) + 10) % 10;
+            counts[digit]++;
+          }
+        }
+        countedRows++;
+        if (countedRows >= 100) break; // Chỉ tính 100 dòng toán đầu
+      }
+    }
+
+    return { counts, countedRows };
+  };
 
   // Click vào STT hoặc Ngày — toggle highlight cả hàng xanh lá mạ
   const handleRowClick = (rowIndex) => {
@@ -1459,6 +1508,120 @@ function App() {
         </div>
       </div>
 
+      {/* Thẻ Thống kê 100 dòng toán đầu (0 - 9) khi click Header 1 */}
+      {colStatsConfig && (
+        <div
+          className="col-stats-panel"
+          style={{
+            margin: "8px 18px",
+            padding: "10px 16px",
+            backgroundColor: "#e0f7fa",
+            border: "2px solid #00acc1",
+            borderRadius: "7px",
+            boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+          }}
+        >
+          {(() => {
+            const { counts, countedRows } = calculateColDigitStats(
+              colStatsConfig.colType,
+              colStatsConfig.tableIndex
+            );
+            return (
+              <>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      color: "#006064",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    📊 Thống kê 100 dòng toán đầu - Cột <strong>{colStatsConfig.colName}</strong>
+                    <span style={{ fontSize: "13px", fontWeight: "normal", color: "#00838f", marginLeft: "6px" }}>
+                      ({countedRows}/100 dòng toán đầu)
+                    </span>
+                  </span>
+                  <button
+                    onClick={() => setColStatsConfig(null)}
+                    style={{
+                      background: "#dc3545",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      padding: "4px 10px",
+                      fontSize: "13px",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                    }}
+                    title="Đóng bảng thống kê"
+                  >
+                    ✕ Đóng
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(10, 1fr)",
+                    gap: "8px",
+                  }}
+                >
+                  {counts.map((cnt, digit) => (
+                    <div
+                      key={digit}
+                      style={{
+                        backgroundColor: "white",
+                        border: "1.5px solid #80deea",
+                        borderRadius: "5px",
+                        padding: "5px 4px",
+                        textAlign: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          color: "#555",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        Số {digit}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "18px",
+                          fontWeight: "bold",
+                          color: cnt > 0 ? "#007c91" : "#bbb",
+                        }}
+                      >
+                        {cnt}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
       {/* Main Content - Tables */}
       <div className="main-content">
         {isGenerating && (
@@ -1516,17 +1679,19 @@ function App() {
                       </th>
                       <th
                         colSpan="1"
-                        className={`group-header${highlightedAColumn ? " col-header-yellow" : ""}`}
-                        onClick={handleAColClick}
+                        className={`group-header${colStatsConfig?.colType === "A" ? " col-header-stats-active" : ""}`}
+                        onClick={() => handleHeader1ColClick("A", null, "A")}
                         style={{ cursor: "pointer" }}
+                        title="Click dòng 1: Thống kê chữ số 0-9 (100 dòng toán đầu)"
                       >
                         A
                       </th>
                       <th
                         colSpan="1"
-                        className={`group-header${highlightedBColumn ? " col-header-yellow" : ""}`}
-                        onClick={handleBColClick}
+                        className={`group-header${colStatsConfig?.colType === "B" ? " col-header-stats-active" : ""}`}
+                        onClick={() => handleHeader1ColClick("B", null, "B")}
                         style={{ cursor: "pointer" }}
+                        title="Click dòng 1: Thống kê chữ số 0-9 (100 dòng toán đầu)"
                       >
                         B
                       </th>
@@ -1534,9 +1699,21 @@ function App() {
                         <th
                           key={tableIndex}
                           colSpan="1"
-                          className={`group-header${highlightedTColumns[tableIndex] ? " col-header-yellow" : ""}`}
-                          onClick={() => handleTColClick(tableIndex)}
+                          className={`group-header${
+                            colStatsConfig?.colType === "T" &&
+                            colStatsConfig?.tableIndex === tableIndex
+                              ? " col-header-stats-active"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            handleHeader1ColClick(
+                              "T",
+                              tableIndex,
+                              `T${tableIndex + 1}`
+                            )
+                          }
                           style={{ cursor: "pointer" }}
+                          title={`Click dòng 1: Thống kê chữ số 0-9 (100 dòng toán đầu) Cột T${tableIndex + 1}`}
                         >
                           T{tableIndex + 1}
                         </th>
@@ -1562,6 +1739,7 @@ function App() {
                         className={`col-header fixed${highlightedAColumn ? " col-header-yellow" : ""}`}
                         onClick={handleAColClick}
                         style={{ cursor: "pointer" }}
+                        title="Click dòng 2: Tô màu xanh nhạt cột A"
                       >
                         A
                       </th>
@@ -1569,6 +1747,7 @@ function App() {
                         className={`col-header fixed${highlightedBColumn ? " col-header-yellow" : ""}`}
                         onClick={handleBColClick}
                         style={{ cursor: "pointer" }}
+                        title="Click dòng 2: Tô màu xanh nhạt cột B"
                       >
                         B
                       </th>
@@ -1578,6 +1757,7 @@ function App() {
                           className={`col-header fixed${highlightedTColumns[tableIndex] ? " col-header-yellow" : ""}`}
                           onClick={() => handleTColClick(tableIndex)}
                           style={{ cursor: "pointer" }}
+                          title={`Click dòng 2: Tô màu xanh nhạt cột T${tableIndex + 1}`}
                         >
                           T{tableIndex + 1}
                         </th>
