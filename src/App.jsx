@@ -1513,15 +1513,15 @@ function App() {
         <div
           className="col-stats-panel"
           style={{
-            margin: "8px 18px",
-            padding: "10px 16px",
+            margin: "10px 18px",
+            padding: "12px 18px",
             backgroundColor: "#e0f7fa",
-            border: "2px solid #00acc1",
-            borderRadius: "7px",
-            boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
+            border: "2.5px solid #00acc1",
+            borderRadius: "8px",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.12)",
             display: "flex",
             flexDirection: "column",
-            gap: "8px",
+            gap: "10px",
           }}
         >
           {(() => {
@@ -1540,16 +1540,16 @@ function App() {
                 >
                   <span
                     style={{
-                      fontSize: "16px",
+                      fontSize: "19px",
                       fontWeight: "bold",
                       color: "#006064",
                       display: "flex",
                       alignItems: "center",
-                      gap: "8px",
+                      gap: "10px",
                     }}
                   >
                     📊 Thống kê 100 dòng toán đầu - Cột <strong>{colStatsConfig.colName}</strong>
-                    <span style={{ fontSize: "13px", fontWeight: "normal", color: "#00838f", marginLeft: "6px" }}>
+                    <span style={{ fontSize: "15px", fontWeight: "normal", color: "#00838f", marginLeft: "8px" }}>
                       ({countedRows}/100 dòng toán đầu)
                     </span>
                   </span>
@@ -1559,9 +1559,9 @@ function App() {
                       background: "#dc3545",
                       color: "white",
                       border: "none",
-                      borderRadius: "4px",
-                      padding: "4px 10px",
-                      fontSize: "13px",
+                      borderRadius: "5px",
+                      padding: "5px 12px",
+                      fontSize: "15px",
                       fontWeight: "bold",
                       cursor: "pointer",
                     }}
@@ -1575,7 +1575,7 @@ function App() {
                   style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(10, 1fr)",
-                    gap: "8px",
+                    gap: "10px",
                   }}
                 >
                   {counts.map((cnt, digit) => (
@@ -1583,32 +1583,33 @@ function App() {
                       key={digit}
                       style={{
                         backgroundColor: "white",
-                        border: "1.5px solid #80deea",
-                        borderRadius: "5px",
-                        padding: "5px 4px",
+                        border: "2px solid #80deea",
+                        borderRadius: "6px",
+                        padding: "8px 4px",
                         textAlign: "center",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
                         alignItems: "center",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.06)",
                       }}
                     >
                       <span
                         style={{
-                          fontSize: "12px",
+                          fontSize: "18px",
                           fontWeight: "bold",
-                          color: "#555",
-                          marginBottom: "2px",
+                          color: "#444",
+                          marginBottom: "4px",
                         }}
                       >
                         Số {digit}
                       </span>
                       <span
                         style={{
-                          fontSize: "18px",
+                          fontSize: "34px",
                           fontWeight: "bold",
-                          color: cnt > 0 ? "#007c91" : "#bbb",
+                          color: cnt > 0 ? "#007c91" : "#ccc",
+                          lineHeight: "1",
                         }}
                       >
                         {cnt}
