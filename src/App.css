@@ -336,6 +336,8 @@ body {
   left: 0;
   z-index: 12 !important;
   background-color: #fff !important;
+  /* Chỉ bổ sung border-bottom bị mất do border-collapse + sticky */
+  box-shadow: inset 0 -2px 0 0 #333;
 }
 
 .stt-col {
