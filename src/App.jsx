@@ -94,7 +94,7 @@ function App() {
     return dateString;
   };
 
-  // Load dữ liệu từ Firestore khi component mount
+  // Load dữ liệu từ DB khi component mount
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -104,14 +104,19 @@ function App() {
         const result = await loadPageData(pageId);
         console.log("📥 Dữ liệu tải về:", result);
         if (result.success && result.data) {
-          setAValues(result.data.aValues || Array(ROWS).fill(""));
-          setBValues(result.data.bValues || Array(ROWS).fill(""));
-          setZValues(result.data.zValues || Array(ROWS).fill(""));
-          setDateValues(result.data.dateValues || Array(ROWS).fill(""));
-          setSourceSTTValues(
-            result.data.sourceSTTValues || Array(ROWS).fill(""),
-          );
-          setDeletedRows(result.data.deletedRows || Array(ROWS).fill(false));
+          const loadedA = result.data.aValues || Array(ROWS).fill("");
+          const loadedB = result.data.bValues || Array(ROWS).fill("");
+          const loadedZ = result.data.zValues || Array(ROWS).fill("");
+          const loadedDates = result.data.dateValues || Array(ROWS).fill("");
+          const loadedSTT = result.data.sourceSTTValues || Array(ROWS).fill("");
+          const loadedDeleted = result.data.deletedRows || Array(ROWS).fill(false);
+
+          setAValues(loadedA);
+          setBValues(loadedB);
+          setZValues(loadedZ);
+          setDateValues(loadedDates);
+          setSourceSTTValues(loadedSTT);
+          setDeletedRows(loadedDeleted);
           setPageLabel(result.data.pageLabel || "");
 
           if (result.data.keepLastNRows) {
@@ -119,11 +124,12 @@ function App() {
           } else {
             let nonDeletedCount = 0;
             for (let i = 0; i < ROWS; i++) {
-              if (!result.data.deletedRows?.[i]) nonDeletedCount++;
+              if (!loadedDeleted?.[i]) nonDeletedCount++;
             }
             setKeepLastNRows(nonDeletedCount);
           }
           setIsDataLoaded(true);
+          generateAllTables(loadedA, loadedB, loadedDates);
         } else {
           setIsDataLoaded(true);
         }
@@ -138,10 +144,10 @@ function App() {
   }, [pageId]);
 
   // Handle Generate logic (extracted to use in effect)
-  const generateTableDataArr = (tValues, skipColor = false) => {
+  const generateTableDataArr = (tValues, currentDates = dateValues) => {
     let actualRows = 0;
-    for (let i = dateValues.length - 1; i >= 0; i--) {
-      if (dateValues[i] || tValues[i]) {
+    for (let i = currentDates.length - 1; i >= 0; i--) {
+      if (currentDates[i] || tValues[i]) {
         actualRows = i + 1;
         break;
       }
@@ -154,7 +160,7 @@ function App() {
       let y = 1;
       for (let row = 0; row < actualRows; row++) {
         // Bỏ qua hàng rỗng hoàn toàn để không làm tăng y (skip count)
-        if (tValues[row] === "" && !dateValues[row]) {
+        if (tValues[row] === "" && !currentDates[row]) {
           table[row][col] = { value: "", color: "white" };
           continue;
         }
@@ -171,11 +177,15 @@ function App() {
     return table;
   };
 
-  const generateAllTables = () => {
+  const generateAllTables = (
+    currentA = aValues,
+    currentB = bValues,
+    currentDates = dateValues,
+  ) => {
     console.log("🌀 Bắt đầu tính toán 80 bảng T...");
     let actualRows = 0;
     for (let i = ROWS - 1; i >= 0; i--) {
-      if (aValues[i] || bValues[i] || dateValues[i]) {
+      if (currentA[i] || currentB[i] || currentDates[i]) {
         actualRows = i + 1;
         break;
       }
@@ -187,10 +197,10 @@ function App() {
     for (let i = 0; i < TOTAL_TABLES; i++) {
       let v1, v2;
       if (i === 0) {
-        v1 = aValues;
-        v2 = bValues;
+        v1 = currentA;
+        v2 = currentB;
       } else if (i === 1) {
-        v1 = bValues;
+        v1 = currentB;
         v2 = newTValuesArr[0];
       } else {
         v1 = newTValuesArr[i - 2];
@@ -198,7 +208,7 @@ function App() {
       }
       for (let r = 0; r < actualRows; r++) {
         // Chỉ tính toán nếu hàng có dữ liệu (có A hoặc B)
-        if (v1[r] === "" && v2[r] === "" && !dateValues[r]) {
+        if (v1[r] === "" && v2[r] === "" && !currentDates[r]) {
           newTValuesArr[i][r] = "";
           continue;
         }
@@ -206,15 +216,16 @@ function App() {
         const n2 = parseInt(v2[r]) || 0;
         newTValuesArr[i][r] = String((n1 + n2) % 10);
       }
-      // skipColor = true for T3-T10 (i > 1)
-      newTableDataArr.push(generateTableDataArr(newTValuesArr[i], false)); // Hiện báo màu ở tất cả các bảng
+      newTableDataArr.push(
+        generateTableDataArr(newTValuesArr[i], currentDates),
+      );
     }
     setAllTValues(newTValuesArr);
     setAllTableData(newTableDataArr);
   };
 
   useEffect(() => {
-    if (isDataLoaded) generateAllTables();
+    if (isDataLoaded) generateAllTables(aValues, bValues, dateValues);
   }, [dateValues, aValues, bValues, isDataLoaded, deletedRows]);
   useEffect(() => {
     if (isDataLoaded && allTableData.length > 0) {
