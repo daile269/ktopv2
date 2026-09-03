@@ -1481,7 +1481,7 @@ function InputPage() {
                     const color = qIndex % 2 === 0 ? "#e0e0e0" : "#e3f2fd"; // Q lẻ = ghi, Q chẵn = xanh
 
                     return (
-                      <>
+                      <Fragment key={qIndex}>
                         <th
                           key={`a-${qIndex}`}
                           className={
@@ -1521,7 +1521,7 @@ function InputPage() {
                         >
                           B
                         </th>
-                      </>
+                      </Fragment>
                     );
                   })}
                 </tr>
