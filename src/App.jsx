@@ -346,7 +346,7 @@ function App() {
       );
 
       if (result.success) {
-        // ⭐ Sync purple range sang tất cả Q1-Q10
+        // ⭐ Sync date/STT sang tất cả Q1-Q10, giữ nguyên deletedRows của từng Q
         const syncPromises = [];
         for (let i = 1; i <= 10; i++) {
           const qId = `q${i}`;
@@ -359,12 +359,12 @@ function App() {
                   qResult.data.aValues,
                   qResult.data.bValues,
                   qResult.data.zValues || Array(ROWS).fill(""),
-                  dateValues,
-                  deletedRows,
-                  sourceSTTValues,
-                  0, // ⭐ Sync purple range
-                  0, // ⭐ Sync purple range
-                  keepLastNRows,
+                  dateValues,             // ✅ Sync ngày (dùng chung)
+                  qResult.data.deletedRows || Array(ROWS).fill(false), // ✅ Giữ deletedRows riêng của từng Q
+                  sourceSTTValues,        // ✅ Sync STT (dùng chung)
+                  0,
+                  0,
+                  qResult.data.keepLastNRows || keepLastNRows,
                   undefined,
                   qResult.data.pageLabel || "",
                 ),
@@ -405,7 +405,7 @@ function App() {
     );
 
     if (result.success) {
-      // ⭐ Sync purple range sang tất cả Q1-Q10 (không sync T values)
+      // ⭐ Sync date/STT sang tất cả Q1-Q10, giữ nguyên deletedRows của từng Q
       const syncPromises = [];
       for (let i = 1; i <= 10; i++) {
         const qId = `q${i}`;
@@ -413,19 +413,18 @@ function App() {
           // Load data của Q này
           const qResult = await loadPageData(qId);
           if (qResult.success && qResult.data) {
-            // Chỉ update purple range
             syncPromises.push(
               savePageData(
                 qId,
                 qResult.data.aValues,
                 qResult.data.bValues,
                 qResult.data.zValues || Array(ROWS).fill(""),
-                dateValues,
-                deletedRows,
-                sourceSTTValues,
-                0, // ⭐ Sync purple range từ Q hiện tại
-                0, // ⭐ Sync purple range từ Q hiện tại
-                keepLastNRows,
+                dateValues,             // ✅ Sync ngày (dùng chung)
+                qResult.data.deletedRows || Array(ROWS).fill(false), // ✅ Giữ deletedRows riêng của từng Q
+                sourceSTTValues,        // ✅ Sync STT (dùng chung)
+                0,
+                0,
+                qResult.data.keepLastNRows || keepLastNRows,
                 undefined,
                 qResult.data.pageLabel || "",
               ),

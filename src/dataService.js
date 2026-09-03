@@ -87,73 +87,89 @@ export const savePageData = async (
 /**
  * Tải dữ liệu trang từ MongoDB qua Backend API
  * @param {string} pageId - ID của trang
+ * @param {number} retries - Số lần thử lại nếu backend chưa sẵn sàng
  */
-export const loadPageData = async (pageId) => {
-  try {
-    const realId = getRealPageId(pageId);
-    console.log(`📖 Loading data for REAL ID: ${realId}`);
-    const response = await fetch(`${API_URL}/api/pages/${realId}`);
-    const text = await response.text();
-    let result = {};
+export const loadPageData = async (pageId, retries = 5) => {
+  const realId = getRealPageId(pageId);
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      result = text ? JSON.parse(text) : {};
-    } catch {
-      console.warn("⚠️ Response is not JSON:", text);
+      console.log(`📖 Loading data for REAL ID: ${realId} (lần ${attempt}/${retries})`);
+      const response = await fetch(`${API_URL}/api/pages/${realId}`);
+      const text = await response.text();
+      let result = {};
+      try {
+        result = text ? JSON.parse(text) : {};
+      } catch {
+        console.warn("⚠️ Response is not JSON:", text);
+      }
+
+      if (!response.ok) {
+        throw new Error(result.error || `Lỗi server (${response.status})`);
+      }
+
+      if (result.success && result.data) {
+        const data = result.data;
+
+        // Pad data về 125 rows (match với App.jsx)
+        const ROWS = 125;
+
+        // Ensure data is always an array
+        const a = Array.isArray(data.aValues) ? [...data.aValues] : [];
+        const b = Array.isArray(data.bValues) ? [...data.bValues] : [];
+        const z = Array.isArray(data.zValues) ? [...data.zValues] : [];
+        const dates = Array.isArray(data.dateValues) ? [...data.dateValues] : [];
+        const deleted = Array.isArray(data.deletedRows)
+          ? [...data.deletedRows]
+          : [];
+        const sourceSTTs = Array.isArray(data.sourceSTTValues)
+          ? [...data.sourceSTTValues]
+          : [];
+
+        // Pad với empty strings/false
+        while (a.length < ROWS) a.push("");
+        while (b.length < ROWS) b.push("");
+        while (z.length < ROWS) z.push("");
+        while (dates.length < ROWS) dates.push("");
+        while (deleted.length < ROWS) deleted.push(false);
+        while (sourceSTTs.length < ROWS) sourceSTTs.push("");
+
+        return {
+          success: true,
+          data: {
+            aValues: a,
+            bValues: b,
+            zValues: z,
+            dateValues: dates,
+            deletedRows: deleted,
+            sourceSTTValues: sourceSTTs,
+            purpleRangeFrom: data.purpleRangeFrom || 0,
+            purpleRangeTo: data.purpleRangeTo || 0,
+            keepLastNRows: data.keepLastNRows || 125,
+            allQData: data.allQData,
+            pageLabel: data.pageLabel || "",
+          },
+        };
+      } else {
+        console.log(`No data found for ${pageId}, returning null`);
+        return { success: true, data: null };
+      }
+    } catch (error) {
+      const isNetworkError =
+        error instanceof TypeError && error.message.includes("fetch");
+
+      if (isNetworkError && attempt < retries) {
+        const delay = attempt * 1000; // 1s, 2s, 3s, 4s...
+        console.warn(
+          `⚠️ Backend chưa sẵn sàng, thử lại sau ${delay / 1000}s... (lần ${attempt}/${retries})`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        continue;
+      }
+
+      console.error("Lỗi khi tải dữ liệu:", error);
+      return { success: false, error: error.message };
     }
-
-    if (!response.ok) {
-      throw new Error(result.error || `Lỗi server (${response.status})`);
-    }
-
-    if (result.success && result.data) {
-      const data = result.data;
-
-      // Pad data về 125 rows (match với App.jsx)
-      const ROWS = 125;
-
-      // Ensure data is always an array
-      const a = Array.isArray(data.aValues) ? [...data.aValues] : [];
-      const b = Array.isArray(data.bValues) ? [...data.bValues] : [];
-      const z = Array.isArray(data.zValues) ? [...data.zValues] : [];
-      const dates = Array.isArray(data.dateValues) ? [...data.dateValues] : [];
-      const deleted = Array.isArray(data.deletedRows)
-        ? [...data.deletedRows]
-        : [];
-      const sourceSTTs = Array.isArray(data.sourceSTTValues)
-        ? [...data.sourceSTTValues]
-        : [];
-
-      // Pad với empty strings/false
-      while (a.length < ROWS) a.push("");
-      while (b.length < ROWS) b.push("");
-      while (z.length < ROWS) z.push("");
-      while (dates.length < ROWS) dates.push("");
-      while (deleted.length < ROWS) deleted.push(false);
-      while (sourceSTTs.length < ROWS) sourceSTTs.push("");
-
-      return {
-        success: true,
-        data: {
-          aValues: a,
-          bValues: b,
-          zValues: z,
-          dateValues: dates,
-          deletedRows: deleted,
-          sourceSTTValues: sourceSTTs,
-          purpleRangeFrom: data.purpleRangeFrom || 0,
-          purpleRangeTo: data.purpleRangeTo || 0,
-          keepLastNRows: data.keepLastNRows || 125,
-          allQData: data.allQData,
-          pageLabel: data.pageLabel || "",
-        },
-      };
-    } else {
-      console.log(`No data found for ${pageId}, returning null`);
-      return { success: true, data: null };
-    }
-  } catch (error) {
-    console.error("Lỗi khi tải dữ liệu:", error);
-    return { success: false, error: error.message };
   }
 };
 
