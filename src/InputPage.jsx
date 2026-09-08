@@ -102,9 +102,15 @@ const TaskRow = memo(
               >
                 <input
                   type="text"
+                  inputMode="numeric"
+                  maxLength={1}
                   className="cell-input small"
                   value={aV}
-                  onChange={(e) => onAChange(qIndex, rowIndex, e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    onAChange(qIndex, rowIndex, val.slice(-1));
+                  }}
                 />
               </td>
               <td
@@ -128,9 +134,15 @@ const TaskRow = memo(
               >
                 <input
                   type="text"
+                  inputMode="numeric"
+                  maxLength={1}
                   className="cell-input small"
                   value={bV}
-                  onChange={(e) => onBChange(qIndex, rowIndex, e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    onBChange(qIndex, rowIndex, val.slice(-1));
+                  }}
                 />
               </td>
             </Fragment>
@@ -599,6 +611,7 @@ function InputPage() {
   // Date change has been removed
 
   const handleAChange = useCallback((qIdx, rIdx, val) => {
+    const cleanVal = typeof val === "string" ? val.replace(/\D/g, "").slice(-1) : "";
     setAllQData((prev) => {
       const next = Array.isArray(prev) ? [...prev] : [];
       const targetQ = next[qIdx] || {};
@@ -608,7 +621,7 @@ function InputPage() {
       while (aArr.length <= rIdx) {
         aArr.push("");
       }
-      aArr[rIdx] = val;
+      aArr[rIdx] = cleanVal;
 
       next[qIdx] = {
         aValues: aArr,
@@ -628,6 +641,7 @@ function InputPage() {
   }, []);
 
   const handleBChange = useCallback((qIdx, rIdx, val) => {
+    const cleanVal = typeof val === "string" ? val.replace(/\D/g, "").slice(-1) : "";
     setAllQData((prev) => {
       const next = Array.isArray(prev) ? [...prev] : [];
       const targetQ = next[qIdx] || {};
@@ -637,7 +651,7 @@ function InputPage() {
       while (bArr.length <= rIdx) {
         bArr.push("");
       }
-      bArr[rIdx] = val;
+      bArr[rIdx] = cleanVal;
 
       next[qIdx] = {
         aValues: aArr,
